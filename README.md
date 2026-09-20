@@ -1,11 +1,51 @@
-# SEEKMORE
+<p align="center">
+  <a href="https://seekmore.ai">
+    <img src="./assets/seekmore-logo.svg" alt="SEEKMORE" width="560" />
+  </a>
+</p>
 
-**Open-source desktop AI Agent Harness for Windows and macOS.**
+<p align="center">
+  <strong>A companion for life.</strong>
+</p>
 
-[简体中文](README.zh-CN.md) · [Website](https://seekmore.ai)
+<p align="center">
+  Open-source desktop AI Agent Harness for Windows and macOS.<br />
+  Agent Runtime, local tools, Skills, MCP, Memory, Knowledge, Workflow, Automation, and external models — in one desktop application.
+</p>
 
-SEEKMORE brings Agent Runtime, local tools, Skills, MCP, Memory, Knowledge, Runtime Objects, Workflow, Automation, and external model APIs together in one desktop application.
+<p align="center">
+  <a href="https://seekmore.ai">Website</a>
+  ·
+  <a href="https://seekmore.ai/#download">Download</a>
+  ·
+  <a href="https://discord.gg/QJVFtHUCr">Community</a>
+  ·
+  <a href="./README.zh-CN.md">简体中文</a>
+</p>
 
+<br />
+
+<p align="center">
+  <a href="https://seekmore.ai">
+    <img src="./assets/readme/homepage.png" alt="SEEKMORE Website" width="100%" />
+  </a>
+</p>
+
+<p align="center">
+  <sub>I need a black hole lunch—but before that, I'll finish the task.</sub>
+</p>
+
+<br />
+
+<p align="center">
+  <img src="./assets/readme/desktop-app.png" alt="SEEKMORE Desktop App" width="100%" />
+</p>
+
+<p align="center">
+  <sub>SEEKMORE Desktop · Windows &amp; macOS</sub>
+</p>
+
+<br />
 
 ---
 

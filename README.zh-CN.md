@@ -1,11 +1,51 @@
-# SEEKMORE｜求索无境
+<p align="center">
+  <a href="https://seekmore.ai">
+    <img src="./assets/seekmore-logo.svg" alt="SEEKMORE" width="560" />
+  </a>
+</p>
 
-**面向 Windows 与 macOS 的开源桌面 AI Agent Harness。**
+<p align="center">
+  <strong>SEEKMORE｜求索无境</strong>
+</p>
 
-[English](README.md) · [官网](https://seekmore.ai)
+<p align="center">
+  面向 Windows 与 macOS 的开源桌面 AI Agent Harness。<br />
+  把 Agent Runtime、本地工具、Skill、MCP、Memory、Knowledge、Workflow、Automation 与外部模型能力放进一个桌面应用里。
+</p>
 
-SEEKMORE 把 Agent Runtime、本地工具、Skill、MCP、Memory、Knowledge、运行对象、Workflow、Automation 和外部模型 API 放在一个桌面应用里。
+<p align="center">
+  <a href="https://seekmore.ai">官网</a>
+  ·
+  <a href="https://seekmore.ai/#download">下载</a>
+  ·
+  <a href="https://discord.gg/QJVFtHUCr">加入社区</a>
+  ·
+  <a href="./README.md">English</a>
+</p>
 
+<br />
+
+<p align="center">
+  <a href="https://seekmore.ai">
+    <img src="./assets/readme/homepage.png" alt="SEEKMORE 官网" width="100%" />
+  </a>
+</p>
+
+<p align="center">
+  <sub>需要黑洞午餐，在此之前我会先完成任务。</sub>
+</p>
+
+<br />
+
+<p align="center">
+  <img src="./assets/readme/desktop-app.png" alt="SEEKMORE 桌面端" width="100%" />
+</p>
+
+<p align="center">
+  <sub>SEEKMORE Desktop · Windows / macOS</sub>
+</p>
+
+<br />
 
 ---
 
