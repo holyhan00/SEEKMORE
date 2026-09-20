@@ -1,0 +1,71 @@
+{
+  "name": "seekmore",
+  "version": "1.0.0",
+  "description": "SEEKMORE workspace",
+  "scripts": {
+    "install:all": "pnpm install",
+
+    "build": "pnpm --filter backend build && pnpm --filter frontend build && pnpm --filter @seekmore/desktop build",
+    "build:backend": "pnpm --filter backend build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:desktop": "pnpm --filter @seekmore/desktop build",
+
+    "dev:backend": "pnpm --filter backend start:dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:desktop": "pnpm --filter @seekmore/desktop dev",
+
+    "test:release:runtime": "pnpm --filter @seekmore/desktop test:release:desktop",
+
+    "test:release:toolchain": "node --test distribution/test/toolchain-contract.spec.cjs",
+
+    "release:vendor:macos": "bash distribution/scripts/macos/vendor-runtime.sh",
+    "release:vendor:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File distribution/scripts/windows/vendor-runtime.ps1",
+
+    "release:build": "node distribution/scripts/build.cjs",
+    "release:stage": "node distribution/scripts/stage.cjs",
+    "release:verify:stage": "node distribution/scripts/verify-stage.cjs",
+
+    "test:release:stage": "pnpm test:release:toolchain && pnpm test:release:runtime && node --test distribution/test/stage-contract.spec.cjs",
+
+    "release:app:macos": "node distribution/scripts/macos/package-app.cjs",
+    "release:verify:app:macos": "node distribution/scripts/macos/verify-app.cjs",
+    "release:installer:macos": "node distribution/scripts/macos/package-installer.cjs",
+    "release:verify:installer:macos": "node distribution/scripts/macos/verify-installer.cjs",
+
+    "test:release:macos": "pnpm test:release:toolchain && node --test distribution/test/installer-contract.spec.cjs distribution/test/macos/*.spec.cjs",
+
+    "release:app:windows": "node distribution/scripts/windows/package-app.cjs",
+    "release:verify:app:windows": "node distribution/scripts/windows/verify-app.cjs",
+    "release:installer:windows": "node distribution/scripts/windows/package-installer.cjs",
+    "release:verify:installer:windows": "node distribution/scripts/windows/verify-installer.cjs",
+
+    "test:release:windows": "pnpm test:release:toolchain && node --test distribution/test/installer-contract.spec.cjs distribution/test/windows/*.spec.cjs",
+
+    "test:release": "pnpm test:release:toolchain && pnpm test:release:runtime && node --test distribution/test/stage-contract.spec.cjs distribution/test/installer-contract.spec.cjs distribution/test/macos/*.spec.cjs distribution/test/windows/*.spec.cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.6.5",
+  "private": true,
+  "engines": {
+    "node": "24.19.0",
+    "pnpm": "10.6.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild",
+      "msgpackr-extract",
+      "@prisma/engines",
+      "unrs-resolver",
+      "prisma",
+      "@prisma/client",
+      "sharp"
+    ]
+  },
+  "devDependencies": {
+    "electron-builder": "26.15.6",
+    "esbuild": "0.28.1"
+  }
+}

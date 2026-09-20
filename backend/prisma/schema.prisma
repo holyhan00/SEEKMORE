@@ -1,0 +1,2464 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                           String                        @id @default(uuid()) @map("user_id")
+  username                     String                        @unique @db.VarChar(255)
+  phone                        String?                       @unique
+  email                        String                        @unique @db.VarChar(320)
+  passwordHash                 String                        @map("password_hash")
+  role                         Role                          @default(USER)
+  plan                         Plan                          @default(FREE)
+  isActive                     Boolean                       @default(true) @map("is_active")
+  mfaEnabled                   Boolean                       @default(false) @map("mfa_enabled")
+  mfaSecret                    String?                       @map("mfa_secret")
+  failedLoginAttempts          Int                           @default(0) @map("failed_login_attempts")
+  accountLockedUntil           DateTime?                     @map("account_locked_until")
+  preferredLanguage            String?                       @map("preferred_language")
+  nickname                     String?                       @default("") @db.VarChar(50)
+  bio                          String?                       @default("") @db.VarChar(500)
+  avatarKey                    String?                       @db.VarChar(255)
+  avatarUpdatedAt              DateTime?
+  lastLoginAt                  DateTime?                     @map("last_login_at")
+  lastLoginIp                  String?                       @map("last_login_ip")
+  createdAt                    DateTime                      @default(now()) @map("created_at")
+  updatedAt                    DateTime                      @updatedAt @map("updated_at")
+  deletedAt                    DateTime?                     @map("deleted_at")
+  agents                       Agent[]                       @relation("UserToAgent")
+  agentKnowledgeObjects        AgentKnowledgeObject[]
+  conversations                Conversation[]
+  userAgents                   UserAgent[]
+  runtimeObjects               RuntimeObject[]
+  packageArtifacts             PackageArtifact[]
+  codePatchRuns                CodePatchRun[]
+  workflowRuns                 WorkflowRun[]                 @relation("WorkflowRunUser")
+  ownedSkills                  Skill[]                       @relation("SkillOwner")
+  createdSkills                Skill[]                       @relation("SkillCreator")
+  createdSkillVersions         SkillVersion[]                @relation("SkillVersionCreator")
+  skillInstallations           SkillInstallation[]           @relation("SkillInstaller")
+  skillValidationRuns          SkillValidationRun[]          @relation("SkillValidationRequester")
+  skillUsageEvents             SkillUsageEvent[]             @relation("SkillUsageUser")
+  skillAuditLogs               SkillAuditLog[]               @relation("SkillAuditActor")
+  conversationSkillActivations ConversationSkillActivation[] @relation("ConversationSkillActivator")
+  localAccount                 LocalAccount?
+  llmCredentials               UserLlmCredential[]
+  llmPreference                UserLlmPreference?
+  webSearchSetting             UserWebSearchSetting?
+  mcpGloballyEnabled           Boolean                       @default(true) @map("mcp_globally_enabled")
+  voiceAssets                  UserVoiceAsset[]
+  ownedMcpDefinitions          McpServerConfig[]             @relation("McpDefinitionOwner")
+  mcpInstallations             McpInstallation[]
+  mcpCredentials               McpCredential[]
+
+  @@index([email], map: "idx_user_email")
+  @@index([username], map: "idx_user_username")
+  @@index([createdAt], map: "idx_user_created_at")
+}
+
+model LocalAccount {
+  key                   String    @id @default("primary") @db.VarChar(32)
+  userId                String?   @unique @map("user_id")
+  sessionId             String?   @map("session_id") @db.VarChar(36)
+  refreshTokenHash      String?   @map("refresh_token_hash") @db.VarChar(64)
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  initializedAt         DateTime? @map("initialized_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("local_account")
+}
+
+model Agent {
+  id                     String           @id @default(uuid())
+  name                   String
+  entityType             SeekmoreEntityType @default(COGNITIVE) @map("entity_type")
+  visibility             AgentVisibility  @default(PRIVATE)
+  isActive               Boolean          @default(true)
+  approved               Boolean          @default(true)
+  deletedAt              DateTime?
+  purgeAfter             DateTime?        @map("purge_after")
+  isTemplate             Boolean          @default(false)
+  avatarKey              String?          @db.VarChar(255)
+  avatarUpdatedAt        DateTime?
+  coverKey               String?          @db.VarChar(255)
+  coverUpdatedAt         DateTime?
+  userId                 String?
+  key                    String?          @unique
+  systemPrompt           String           @default("")
+  rolePrompt             String?          @map("role_prompt")
+  isSuper                Boolean          @default(false)
+  capabilities           String[]         @default([])
+  description            String?
+  downloads              Int              @default(0)
+  likes                  Int              @default(0)
+  tags                   String[]         @default([])
+  capabilityProfile      Json?            @map("capability_profile")
+  capabilityJson         Json?            @map("capability_json")
+  knowledgeEnabled       Boolean          @default(true) @map("knowledge_enabled")
+  memoryEnabled          Boolean          @default(true) @map("memory_enabled")
+  toolEnabled            Boolean          @default(true) @map("tool_enabled")
+  runtimeProfileId       String?          @map("runtime_profile_id") @db.VarChar(120)
+  publishedAt            DateTime?        @map("published_at")
+  verifiedAt             DateTime?        @map("verified_at")
+  defaultImageProviderId String?          @map("default_image_provider_id") @db.VarChar(120)
+  defaultVoiceProviderId String?          @map("default_voice_provider_id") @db.VarChar(120)
+  riskLevel              String?          @default("medium") @map("risk_level")
+  llmTemperature         Float?
+  llmExtra               Json?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  user             User?                        @relation("UserToAgent", fields: [userId], references: [id])
+  conversations    Conversation[]               @relation("AgentConversations")
+  userAgents       UserAgent[]
+  knowledgeObjects AgentKnowledgeObject[]
+  cognitiveProfile CognitiveAgentProfile?
+  serviceProfile   ServiceAgentProfile?
+  runtimeObjects   RuntimeObject[]
+  packageArtifacts PackageArtifact[]
+  codePatchRuns    CodePatchRun[]
+  workflowRuns     WorkflowRun[]                @relation("WorkflowRunAgent")
+  skillPolicy      CognitiveAgentSkillPolicy?
+  skillBindings    CognitiveAgentSkillBinding[]
+  skillUsageEvents SkillUsageEvent[]
+
+  @@index([userId])
+  @@index([entityType], map: "idx_agent_entity_type")
+  @@index([visibility, approved, isActive])
+  @@index([publishedAt], map: "idx_agent_published_at")
+  @@index([verifiedAt], map: "idx_agent_verified_at")
+  @@index([deletedAt])
+  @@index([purgeAfter], map: "idx_agent_purge_after")
+}
+
+
+model MemoryFact {
+  id String @id @default(uuid())
+
+  tenantId       String? @map("tenant_id")
+  orgId          String? @map("org_id")
+  groupId        String? @map("group_id")
+  planId         String? @map("plan_id")
+  projectId      String? @map("project_id")
+  userId         String  @map("user_id")
+  agentId        String? @map("agent_id")
+  conversationId String? @map("conversation_id")
+
+  scopeLevel String @map("scope_level") @db.VarChar(32)
+
+  kind String @db.VarChar(64)
+
+  subject   String @db.VarChar(240)
+  predicate String @db.VarChar(160)
+  valueJson Json   @map("value_json")
+
+  summary    String @db.Text
+  searchText String @map("search_text") @db.Text
+
+  status String @default("active") @db.VarChar(32)
+
+  confidence  Float  @default(0)
+  stability   String @db.VarChar(32)
+  sensitivity String @default("normal") @db.VarChar(32)
+
+  evidenceSource           String  @map("evidence_source") @db.VarChar(64)
+  sourceConversationId     String? @map("source_conversation_id")
+  sourceMessageId          String? @map("source_message_id")
+  sourceAssistantMessageId String? @map("source_assistant_message_id")
+  sourceTraceId            String? @map("source_trace_id") @db.VarChar(128)
+  sourceQuote              String? @map("source_quote") @db.Text
+  sourceHash               String? @map("source_hash") @db.VarChar(128)
+
+  validFrom  DateTime  @default(now()) @map("valid_from")
+  validTo    DateTime? @map("valid_to")
+  lastUsedAt DateTime? @map("last_used_at")
+  usageCount Int       @default(0) @map("usage_count")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  outgoingRelations MemoryRelation[]  @relation("MemoryRelationFrom")
+  incomingRelations MemoryRelation[]  @relation("MemoryRelationTo")
+  embeddings        MemoryEmbedding[]
+
+  @@index([userId, status, scopeLevel, kind], map: "idx_memory_fact_user_status_scope_kind")
+  @@index([userId, agentId, status], map: "idx_memory_fact_user_agent_status")
+  @@index([userId, conversationId, status], map: "idx_memory_fact_user_conversation_status")
+  @@index([userId, projectId, status], map: "idx_memory_fact_user_project_status")
+  @@index([tenantId, orgId, userId], map: "idx_memory_fact_tenant_org_user")
+  @@index([sourceConversationId, sourceMessageId], map: "idx_memory_fact_source_message")
+  @@index([sourceHash], map: "idx_memory_fact_source_hash")
+  @@index([status, updatedAt], map: "idx_memory_fact_status_updated")
+  @@map("memory_fact")
+}
+
+model MemoryEpisode {
+  id String @id @default(uuid())
+
+  tenantId       String? @map("tenant_id")
+  orgId          String? @map("org_id")
+  groupId        String? @map("group_id")
+  planId         String? @map("plan_id")
+  projectId      String? @map("project_id")
+  userId         String  @map("user_id")
+  agentId        String? @map("agent_id")
+  conversationId String? @map("conversation_id")
+
+  sourceConversationId     String? @map("source_conversation_id")
+  sourceUserMessageId      String? @map("source_user_message_id")
+  sourceAssistantMessageId String? @map("source_assistant_message_id")
+  sourceTraceId            String? @map("source_trace_id") @db.VarChar(128)
+
+  userText      String? @map("user_text") @db.Text
+  assistantText String? @map("assistant_text") @db.Text
+  summary       String? @db.Text
+
+  status String @default("active") @db.VarChar(32)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, conversationId, createdAt], map: "idx_memory_episode_user_conversation_time")
+  @@index([sourceConversationId, sourceUserMessageId], map: "idx_memory_episode_source_user_message")
+  @@index([tenantId, orgId, userId], map: "idx_memory_episode_tenant_org_user")
+  @@index([status, createdAt], map: "idx_memory_episode_status_time")
+  @@map("memory_episode")
+}
+
+model MemoryRelation {
+  id String @id @default(uuid())
+
+  tenantId  String? @map("tenant_id")
+  orgId     String? @map("org_id")
+  userId    String  @map("user_id")
+  projectId String? @map("project_id")
+
+  fromMemoryId String @map("from_memory_id")
+  toMemoryId   String @map("to_memory_id")
+
+  relationKind String @map("relation_kind") @db.VarChar(64)
+  confidence   Float  @default(0)
+
+  status String @default("active") @db.VarChar(32)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  fromMemory MemoryFact @relation("MemoryRelationFrom", fields: [fromMemoryId], references: [id], onDelete: Cascade)
+  toMemory   MemoryFact @relation("MemoryRelationTo", fields: [toMemoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId, fromMemoryId], map: "idx_memory_relation_user_from")
+  @@index([userId, toMemoryId], map: "idx_memory_relation_user_to")
+  @@index([projectId, relationKind], map: "idx_memory_relation_project_kind")
+  @@index([status], map: "idx_memory_relation_status")
+  @@map("memory_relation")
+}
+
+model MemoryEmbedding {
+  id String @id @default(uuid())
+
+  memoryId String @map("memory_id")
+
+  provider   String @db.VarChar(64)
+  model      String @db.VarChar(120)
+  dimensions Int
+
+  vectorJson Json @map("vector_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  memory MemoryFact @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+
+  @@index([memoryId], map: "idx_memory_embedding_memory")
+  @@index([provider, model], map: "idx_memory_embedding_provider_model")
+  @@map("memory_embedding")
+}
+
+model MemoryAudit {
+  id String @id @default(uuid())
+
+  tenantId       String? @map("tenant_id")
+  orgId          String? @map("org_id")
+  groupId        String? @map("group_id")
+  planId         String? @map("plan_id")
+  projectId      String? @map("project_id")
+  userId         String  @map("user_id")
+  agentId        String? @map("agent_id")
+  conversationId String? @map("conversation_id")
+
+  action String @db.VarChar(64)
+
+  memoryId    String? @map("memory_id")
+  payloadJson Json?   @map("payload_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt], map: "idx_memory_audit_user_time")
+  @@index([memoryId], map: "idx_memory_audit_memory")
+  @@index([action, createdAt], map: "idx_memory_audit_action_time")
+  @@index([tenantId, orgId, userId], map: "idx_memory_audit_tenant_org_user")
+  @@map("memory_audit")
+}
+
+model UserAgent {
+  id                String           @id @default(uuid())
+  userId            String
+  agentId           String
+  accessLevel       AgentAccessLevel @default(OWNER)
+  remark            String?
+  pinnedAt          DateTime?
+  removedFromChatAt DateTime?        @map("removed_from_chat_at")
+  deletedAt         DateTime?
+  isDefaultAgent    Boolean          @default(false) @map("is_default_agent")
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  agent             Agent            @relation(fields: [agentId], references: [id])
+  user              User             @relation(fields: [userId], references: [id])
+
+  @@unique([agentId, userId], map: "uq_agent_user")
+  @@index([userId])
+  @@index([agentId])
+  @@index([pinnedAt])
+  @@index([removedFromChatAt], map: "idx_user_agent_removed_chat")
+  @@index([deletedAt])
+  @@index([userId, isDefaultAgent], map: "idx_user_default_agent")
+}
+
+model AgentKnowledgeObject {
+  id             String               @id @default(cuid())
+  agentId        String               @map("agent_id")
+  userId         String               @map("user_id")
+  originalName   String               @map("original_name") @db.VarChar(255)
+  storedName     String               @map("stored_name") @db.VarChar(255)
+  mimeType       String               @map("mime_type") @db.VarChar(120)
+  extension      String?              @map("extension") @db.VarChar(32)
+  sizeBytes      Int                  @map("size_bytes")
+  sha256         String?              @map("sha256") @db.VarChar(64)
+  storageKey     String               @map("storage_key") @db.VarChar(500)
+  parseStatus    KnowledgeParseStatus @default(PENDING) @map("parse_status")
+  parseError     String?              @map("parse_error")
+  chunkCount     Int?                 @map("chunk_count")
+  embeddingModel String?              @map("embedding_model") @db.VarChar(120)
+  meta           Json?
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  deletedAt      DateTime?            @map("deleted_at")
+
+  agent  Agent                 @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  user   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chunks AgentKnowledgeChunk[]
+
+  @@index([agentId], map: "idx_agent_knowledge_agent")
+  @@index([userId], map: "idx_agent_knowledge_user")
+  @@index([parseStatus], map: "idx_agent_knowledge_parse_status")
+  @@index([deletedAt], map: "idx_agent_knowledge_deleted_at")
+  @@map("agent_knowledge_object")
+}
+
+model AgentKnowledgeChunk {
+  id             String                 @id @default(cuid())
+  objectId       String                 @map("object_id")
+  agentId        String                 @map("agent_id")
+  userId         String                 @map("user_id")
+  chunkIndex     Int                    @map("chunk_index")
+  content        String
+  tokenCount     Int?                   @map("token_count")
+  embedding      Unsupported("vector")?
+  embeddingModel String?                @map("embedding_model") @db.VarChar(120)
+  meta           Json?
+  createdAt      DateTime               @default(now()) @map("created_at")
+
+  object AgentKnowledgeObject @relation(fields: [objectId], references: [id], onDelete: Cascade)
+
+  @@unique([objectId, chunkIndex], map: "uq_agent_knowledge_chunk_object_index")
+  @@index([objectId], map: "idx_agent_knowledge_chunk_object")
+  @@index([agentId], map: "idx_agent_knowledge_chunk_agent")
+  @@index([userId], map: "idx_agent_knowledge_chunk_user")
+  @@map("agent_knowledge_chunk")
+}
+
+
+model RuntimeObject {
+  id             String @id @default(cuid())
+  userId         String @map("user_id")
+  agentId        String @map("origin_agent_id")
+  conversationId String @map("origin_conversation_id")
+
+  originalName String @map("original_name") @db.VarChar(500)
+  displayName  String @map("display_name") @db.VarChar(500)
+  baseName     String @map("base_name") @db.VarChar(500)
+  extension    String @default("") @db.VarChar(64)
+  mimeType     String @map("mime_type") @db.VarChar(160)
+  sizeBytes    BigInt @map("size_bytes")
+
+  contentHash       String @map("content_hash") @db.VarChar(64)
+  duplicateGroupKey String @map("duplicate_group_key") @db.VarChar(512)
+  versionNo         Int    @default(0) @map("version_no")
+
+  storageKey String @map("storage_key") @db.VarChar(1000)
+
+  objectKind String @map("object_kind") @db.VarChar(32)
+
+  originType String @map("origin_type") @db.VarChar(32)
+  visibility String @map("visibility") @db.VarChar(32)
+
+  status String @default("available") @map("upload_status") @db.VarChar(32)
+
+  metadata Json? @default("{}")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent        Agent        @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+
+  messageLinks MessageObjectLink[]
+
+  @@unique([duplicateGroupKey, versionNo], map: "uq_runtime_object_partition_name_version")
+  @@index([userId, extension, baseName], map: "idx_runtime_object_user_extension_name")
+  @@index([userId, agentId, conversationId, createdAt], map: "idx_runtime_object_partition_created")
+  @@index([userId, agentId, conversationId, objectKind], map: "idx_runtime_object_partition_kind")
+  @@index([userId, agentId, conversationId, visibility, objectKind, createdAt], map: "idx_runtime_object_partition_visibility_kind_created")
+  @@index([contentHash], map: "idx_runtime_object_content_hash")
+  @@index([deletedAt], map: "idx_runtime_object_deleted_at")
+  @@map("runtime_object")
+}
+
+model StorageDeletionTask {
+  id               String    @id @default(cuid())
+  deduplicationKey String    @unique @map("deduplication_key") @db.VarChar(64)
+  storageKind      String    @map("storage_kind") @db.VarChar(32)
+  storageKey       String    @map("storage_key") @db.VarChar(1000)
+  sourceType       String    @map("source_type") @db.VarChar(64)
+  sourceId         String    @map("source_id") @db.VarChar(180)
+  status           String    @default("pending") @db.VarChar(32)
+  attempts         Int       @default(0)
+  availableAt      DateTime  @default(now()) @map("available_at")
+  claimedAt        DateTime? @map("claimed_at")
+  lastError        String?   @map("last_error") @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@index([status, availableAt], map: "idx_storage_deletion_task_pending")
+  @@index([sourceType, sourceId], map: "idx_storage_deletion_task_source")
+  @@index([claimedAt], map: "idx_storage_deletion_task_claimed")
+  @@map("storage_deletion_task")
+}
+
+enum MessageObjectRole {
+  USER_INPUT
+  ASSISTANT_OUTPUT
+}
+
+model MessageObjectLink {
+  id        String            @id @default(cuid())
+  messageId String            @map("message_id")
+  objectId  String            @map("object_id")
+  role      MessageObjectRole
+  position  Int               @default(0)
+  createdAt DateTime          @default(now()) @map("created_at")
+
+  message Message       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  object  RuntimeObject @relation(fields: [objectId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, objectId, role], map: "uq_message_object_link_message_object_role")
+  @@unique([messageId, role, position], map: "uq_message_object_link_message_role_position")
+  @@index([messageId, role], map: "idx_message_object_link_message_role")
+  @@index([objectId], map: "idx_message_object_link_object")
+  @@map("message_object_link")
+}
+
+model CodeProjectProfile {
+  id                  String              @id @default(cuid())
+  objectId            String              @map("object_id")
+  userId              String              @map("user_id")
+  agentId             String?             @map("agent_id")
+  conversationId      String?             @map("conversation_id")
+  versionNo           Int                 @default(1) @map("version_no")
+  isActive            Boolean             @default(true) @map("is_active")
+  projectKind         String              @map("project_kind") @db.VarChar(64)
+  languageSetJson     Json                @map("language_set_json")
+  objectCount         Int                 @default(0) @map("object_count")
+  indexedObjectCount  Int                 @default(0) @map("indexed_object_count")
+  ignoredObjectCount  Int                 @default(0) @map("ignored_object_count")
+  structureJson       Json                @map("structure_json")
+  dependencyGraphJson Json?               @map("dependency_graph_json")
+  summary             String?
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+  objects             CodeProjectObject[]
+  symbols             CodeSymbol[]
+  patchRuns           CodePatchRun[]
+
+  @@unique([objectId, versionNo], map: "uq_code_project_profile_object_version")
+  @@index([objectId], map: "idx_code_project_profile_object")
+  @@index([objectId, isActive], map: "idx_code_project_profile_object_active")
+  @@map("code_project_profile")
+}
+
+model CodeProjectObject {
+  id        String   @id @default(cuid())
+  projectId String   @map("project_id")
+  objectId  String?  @map("object_id")
+  path      String   @db.VarChar(1000)
+  language  String   @db.VarChar(64)
+  sizeBytes BigInt   @default(0) @map("size_bytes")
+  lineCount Int      @default(0) @map("line_count")
+  hash      String?  @db.VarChar(64)
+  role      String   @default("source") @db.VarChar(32)
+  summary   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  project CodeProjectProfile @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  symbols CodeSymbol[]
+
+  @@unique([projectId, path], map: "uq_code_project_object_project_path")
+  @@index([projectId], map: "idx_code_project_object_project")
+  @@index([language], map: "idx_code_project_object_language")
+  @@map("code_project_object")
+}
+
+model CodeSymbol {
+  id              String   @id @default(cuid())
+  projectId       String   @map("project_id")
+  projectObjectId String   @map("project_object_id")
+  objectPath      String   @map("object_path") @db.VarChar(1000)
+  name            String   @db.VarChar(255)
+  kind            String   @db.VarChar(64)
+  lineStart       Int      @map("line_start")
+  lineEnd         Int      @map("line_end")
+  exported        Boolean  @default(false)
+  signature       String?
+  metadataJson    Json?    @map("metadata_json")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  project       CodeProjectProfile @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectObject CodeProjectObject  @relation(fields: [projectObjectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, name], map: "idx_code_symbol_project_name")
+  @@index([projectId, objectPath], map: "idx_code_symbol_project_object_path")
+  @@index([projectObjectId], map: "idx_code_symbol_project_object")
+  @@index([kind], map: "idx_code_symbol_kind")
+  @@map("code_symbol")
+}
+
+model CodePatchRun {
+  id                 String    @id @default(cuid())
+  userId             String    @map("user_id")
+  agentId            String?   @map("agent_id")
+  conversationId     String?   @map("conversation_id")
+  messageId          String?   @map("message_id")
+  projectId          String    @map("project_id")
+  sourceObjectId     String?   @map("source_object_id")
+  instruction        String
+  status             String    @default("planned") @db.VarChar(32)
+  patchPlanJson      Json      @map("patch_plan_json")
+  appliedChangesJson Json?     @map("applied_changes_json")
+  validationJson     Json?     @map("validation_json")
+  packageArtifactId  String?   @map("package_artifact_id")
+  errorCode          String?   @map("error_code") @db.VarChar(120)
+  errorMessage       String?   @map("error_message")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  startedAt          DateTime? @map("started_at")
+  finishedAt         DateTime? @map("finished_at")
+
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent           Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  project         CodeProjectProfile @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  packageArtifact PackageArtifact?   @relation(fields: [packageArtifactId], references: [id], onDelete: SetNull)
+
+  @@index([projectId], map: "idx_code_patch_run_project")
+  @@index([sourceObjectId], map: "idx_code_patch_run_source_object")
+  @@index([packageArtifactId], map: "idx_code_patch_run_package_artifact")
+  @@index([status], map: "idx_code_patch_run_status")
+  @@map("code_patch_run")
+}
+
+model PackageArtifact {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  agentId         String?  @map("agent_id")
+  conversationId  String?  @map("conversation_id")
+  messageId       String?  @map("message_id")
+  sourceObjectId  String?  @map("source_object_id")
+  sourceProjectId String?  @map("source_project_id")
+  objectname      String   @db.VarChar(500)
+  storageKey      String   @map("storage_key") @db.VarChar(1000)
+  publicUrl       String?  @map("public_url") @db.VarChar(1000)
+  mimeType        String   @default("application/zip") @map("mime_type") @db.VarChar(160)
+  sizeBytes       BigInt   @default(0) @map("size_bytes")
+  packageKind     String   @default("zip") @map("package_kind") @db.VarChar(32)
+  status          String   @default("created") @db.VarChar(32)
+  manifestJson    Json     @map("manifest_json")
+  validationJson  Json?    @map("validation_json")
+  metadataJson    Json?    @map("metadata_json")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent         Agent?                 @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  entries       PackageArtifactEntry[]
+  codePatchRuns CodePatchRun[]
+
+  @@index([sourceObjectId], map: "idx_package_artifact_source_object")
+  @@index([sourceProjectId], map: "idx_package_artifact_source_project")
+  @@index([status], map: "idx_package_artifact_status")
+  @@map("package_artifact")
+}
+
+model PackageArtifactEntry {
+  id                String   @id @default(cuid())
+  packageArtifactId String   @map("package_artifact_id")
+  path              String   @db.VarChar(1000)
+  kind              String   @db.VarChar(64)
+  sizeBytes         BigInt   @default(0) @map("size_bytes")
+  hash              String?  @db.VarChar(64)
+  action            String?  @db.VarChar(32)
+  sourcePath        String?  @map("source_path") @db.VarChar(1000)
+  metadataJson      Json?    @map("metadata_json")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  packageArtifact PackageArtifact @relation(fields: [packageArtifactId], references: [id], onDelete: Cascade)
+
+  @@index([packageArtifactId], map: "idx_package_artifact_entry_package")
+  @@index([kind], map: "idx_package_artifact_entry_kind")
+  @@map("package_artifact_entry")
+}
+
+model Skill {
+  id              String  @id @default(uuid())
+  ownerUserId     String? @map("owner_user_id")
+  createdByUserId String  @map("created_by_user_id")
+  namespaceKey    String  @map("namespace_key") @db.VarChar(240)
+  tenantId        String? @map("tenant_id") @db.VarChar(120)
+  organizationId  String? @map("organization_id") @db.VarChar(120)
+
+  name                  String @db.VarChar(120)
+  displayName           String @map("display_name") @db.VarChar(120)
+  slug                  String @db.VarChar(64)
+  description           String @db.VarChar(1024)
+  activationDescription String @map("activation_description") @db.VarChar(1024)
+
+  status                SkillStatus         @default(DRAFT)
+  visibility            SkillVisibility     @default(PRIVATE)
+  trustLevel            SkillTrustLevel     @default(USER) @map("trust_level")
+  securityState         SkillSecurityState  @default(REVIEW_REQUIRED) @map("security_state")
+  defaultActivationMode SkillActivationMode @default(AUTOMATIC) @map("default_activation_mode")
+
+  category  String?  @db.VarChar(80)
+  tags      String[] @default([])
+  platforms String[] @default([])
+  iconKey   String?  @map("icon_key") @db.VarChar(500)
+  coverKey  String?  @map("cover_key") @db.VarChar(500)
+
+  currentVersionId String?       @unique @map("current_version_id")
+  currentVersion   SkillVersion? @relation("SkillCurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  revision         Int           @default(1)
+
+  useCount         BigInt    @default(0) @map("use_count")
+  lastUsedAt       DateTime? @map("last_used_at")
+  lastValidatedAt  DateTime? @map("last_validated_at")
+  staleAt          DateTime? @map("stale_at")
+  archivedAt       DateTime? @map("archived_at")
+  quarantinedAt    DateTime? @map("quarantined_at")
+  quarantineReason String?   @map("quarantine_reason") @db.Text
+  pinned           Boolean   @default(false)
+  growEnabled      Boolean   @default(true) @map("grow_enabled")
+  growLocked       Boolean   @default(false) @map("grow_locked")
+
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+  purgeAfter DateTime? @map("purge_after")
+
+  owner     User? @relation("SkillOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  createdBy User  @relation("SkillCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  source                  SkillSource?
+  versions                SkillVersion[]                @relation("SkillVersions")
+  dependenciesOnMe        SkillDependency[]             @relation("SkillDependencyTarget")
+  agentBindings           CognitiveAgentSkillBinding[]
+  installations           SkillInstallation[]
+  conversationActivations ConversationSkillActivation[]
+  aclEntries              SkillAclEntry[]
+  usageEvents             SkillUsageEvent[]
+  auditLogs               SkillAuditLog[]
+
+  @@unique([namespaceKey, slug], map: "uq_skill_namespace_slug")
+  @@index([ownerUserId, status], map: "idx_skill_owner_status")
+  @@index([organizationId, visibility, status], map: "idx_skill_org_visibility_status")
+  @@index([tenantId, status], map: "idx_skill_tenant_status")
+  @@index([trustLevel, securityState], map: "idx_skill_trust_security")
+  @@index([category], map: "idx_skill_category")
+  @@index([tags], type: Gin, map: "idx_skill_tags_gin")
+  @@index([platforms], type: Gin, map: "idx_skill_platforms_gin")
+  @@index([lastUsedAt], map: "idx_skill_last_used")
+  @@index([deletedAt], map: "idx_skill_deleted")
+  @@index([purgeAfter], map: "idx_skill_purge_after")
+  @@map("skill")
+}
+
+model SkillSource {
+  id             String          @id @default(uuid())
+  skillId        String          @unique @map("skill_id")
+  kind           SkillSourceKind
+  sourceRef      String?         @map("source_ref") @db.VarChar(1000)
+  sourceRevision String?         @map("source_revision") @db.VarChar(240)
+  provenance     Json            @default("{}")
+  lockData       Json            @default("{}") @map("lock_data")
+  checksum       String?         @db.VarChar(128)
+  lastSyncedAt   DateTime?       @map("last_synced_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@index([kind, sourceRevision], map: "idx_skill_source_kind_revision")
+  @@map("skill_source")
+}
+
+model SkillVersion {
+  id            String             @id @default(uuid())
+  skillId       String             @map("skill_id")
+  versionNumber Int                @map("version_number")
+  versionLabel  String             @map("version_label") @db.VarChar(32)
+  status        SkillVersionStatus @default(DRAFT)
+  revision      Int                @default(1)
+
+  skillMarkdown    String  @map("skill_markdown") @db.Text
+  instructionBody  String  @map("instruction_body") @db.Text
+  manifest         Json    @default("{}")
+  compatibility    String? @db.VarChar(500)
+  validationPolicy Json    @default("{}") @map("validation_policy")
+  failurePolicy    Json    @default("{}") @map("failure_policy")
+  executionPolicy  Json    @default("{}") @map("execution_policy")
+  packageChecksum  String  @map("package_checksum") @db.VarChar(128)
+  sourceRevision   String? @map("source_revision") @db.VarChar(240)
+  changeLog        String? @map("change_log") @db.Text
+  routingProfile   Json    @default("{}") @map("routing_profile")
+  growProvenance   Json    @default("{}") @map("grow_provenance")
+
+  createdByUserId String    @map("created_by_user_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  publishedAt     DateTime? @map("published_at")
+
+  skill               Skill                         @relation("SkillVersions", fields: [skillId], references: [id], onDelete: Cascade)
+  currentFor          Skill?                        @relation("SkillCurrentVersion")
+  createdBy           User                          @relation("SkillVersionCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  files               SkillFile[]
+  schemas             SkillConfigSchema[]
+  dependencies        SkillDependency[]
+  toolBindings        SkillToolBinding[]
+  mcpBindings         SkillMcpBinding[]
+  validationRuns      SkillValidationRun[]
+  pinnedAgentBindings CognitiveAgentSkillBinding[]  @relation("AgentSkillPinnedVersion")
+  pinnedInstallations SkillInstallation[]           @relation("SkillInstallationVersion")
+  sessionActivations  ConversationSkillActivation[] @relation("ConversationSkillVersion")
+  usageEvents         SkillUsageEvent[]
+  auditLogs           SkillAuditLog[]
+
+  @@unique([skillId, versionNumber], map: "uq_skill_version_number")
+  @@unique([skillId, versionLabel], map: "uq_skill_version_label")
+  @@index([skillId, status], map: "idx_skill_version_status")
+  @@index([packageChecksum], map: "idx_skill_version_checksum")
+  @@index([publishedAt], map: "idx_skill_version_published")
+  @@map("skill_version")
+}
+
+model SkillFile {
+  id             String        @id @default(uuid())
+  skillVersionId String        @map("skill_version_id")
+  path           String        @db.VarChar(500)
+  fileType       SkillFileType @map("file_type")
+  mimeType       String        @map("mime_type") @db.VarChar(160)
+  storageKey     String?       @map("storage_key") @db.VarChar(1000)
+  textContent    String?       @map("text_content") @db.Text
+  checksum       String        @db.VarChar(128)
+  sizeBytes      BigInt        @map("size_bytes")
+  executable     Boolean       @default(false)
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  version SkillVersion @relation(fields: [skillVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([skillVersionId, path], map: "uq_skill_file_version_path")
+  @@index([skillVersionId, fileType], map: "idx_skill_file_version_type")
+  @@index([checksum], map: "idx_skill_file_checksum")
+  @@map("skill_file")
+}
+
+model SkillConfigSchema {
+  id             String          @id @default(uuid())
+  skillVersionId String          @map("skill_version_id")
+  kind           SkillSchemaKind
+  schema         Json
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  version SkillVersion @relation(fields: [skillVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([skillVersionId, kind], map: "uq_skill_config_schema")
+  @@map("skill_config_schema")
+}
+
+model SkillDependency {
+  id                String   @id @default(uuid())
+  skillVersionId    String   @map("skill_version_id")
+  dependencySkillId String   @map("dependency_skill_id")
+  versionConstraint String?  @map("version_constraint") @db.VarChar(120)
+  required          Boolean  @default(true)
+  reason            String?  @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  skillVersion    SkillVersion @relation(fields: [skillVersionId], references: [id], onDelete: Cascade)
+  dependencySkill Skill        @relation("SkillDependencyTarget", fields: [dependencySkillId], references: [id], onDelete: Restrict)
+
+  @@unique([skillVersionId, dependencySkillId], map: "uq_skill_dependency")
+  @@index([dependencySkillId], map: "idx_skill_dependency_target")
+  @@map("skill_dependency")
+}
+
+model SkillToolBinding {
+  id                String   @id @default(uuid())
+  skillVersionId    String   @map("skill_version_id")
+  toolName          String   @map("tool_name") @db.VarChar(160)
+  versionConstraint String?  @map("version_constraint") @db.VarChar(120)
+  capabilities      String[] @default([])
+  required          Boolean  @default(true)
+  configSchema      Json?    @map("config_schema")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  version SkillVersion @relation(fields: [skillVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([skillVersionId, toolName], map: "uq_skill_tool_binding")
+  @@index([toolName], map: "idx_skill_tool_name")
+  @@map("skill_tool_binding")
+}
+
+model SkillMcpBinding {
+  id             String   @id @default(uuid())
+  skillVersionId String   @map("skill_version_id")
+  mcpServerId    String?  @map("mcp_server_id")
+  serverName     String   @map("server_name") @db.VarChar(160)
+  toolName       String?  @map("tool_name") @db.VarChar(160)
+  capability     String?  @db.VarChar(160)
+  required       Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  version SkillVersion     @relation(fields: [skillVersionId], references: [id], onDelete: Cascade)
+  server  McpServerConfig? @relation(fields: [mcpServerId], references: [id], onDelete: SetNull)
+
+  @@unique([skillVersionId, serverName, toolName], map: "uq_skill_mcp_binding")
+  @@index([mcpServerId], map: "idx_skill_mcp_server")
+  @@map("skill_mcp_binding")
+}
+
+model CognitiveAgentSkillPolicy {
+  id                     String              @id @default(uuid())
+  agentId                String              @unique @map("agent_id")
+  defaultActivationMode  SkillActivationMode @default(AUTOMATIC) @map("default_activation_mode")
+  maxCatalogEntries      Int                 @default(40) @map("max_catalog_entries")
+  catalogCharBudget      Int                 @default(8000) @map("catalog_char_budget")
+  instructionTokenBudget Int                 @default(6000) @map("instruction_token_budget")
+  resourceTokenBudget    Int                 @default(12000) @map("resource_token_budget")
+  maxAutomaticSkills     Int                 @default(2) @map("max_automatic_skills")
+  maxResourceFiles       Int                 @default(5) @map("max_resource_files")
+  publicDiscoveryEnabled Boolean             @default(true) @map("public_discovery_enabled")
+  publicCatalogLimit     Int                 @default(12) @map("public_catalog_limit")
+  revision               Int                 @default(1)
+  createdAt              DateTime            @default(now()) @map("created_at")
+  updatedAt              DateTime            @updatedAt @map("updated_at")
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("cognitive_agent_skill_policy")
+}
+
+model CognitiveAgentSkillBinding {
+  id                  String               @id @default(uuid())
+  cognitiveAgentId    String               @map("cognitive_agent_id")
+  skillId             String               @map("skill_id")
+  activationMode      SkillActivationMode? @map("activation_mode")
+  priority            Int                  @default(0)
+  enabled             Boolean              @default(true)
+  versionPolicy       SkillVersionPolicy   @default(FOLLOW_CURRENT) @map("version_policy")
+  versionConstraint   String?              @map("version_constraint") @db.VarChar(120)
+  pinnedVersionId     String?              @map("pinned_version_id")
+  config              Json                 @default("{}")
+  permissionOverrides Json                 @default("{}") @map("permission_overrides")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+
+  cognitiveAgent Agent         @relation(fields: [cognitiveAgentId], references: [id], onDelete: Cascade)
+  skill          Skill         @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  pinnedVersion  SkillVersion? @relation("AgentSkillPinnedVersion", fields: [pinnedVersionId], references: [id], onDelete: SetNull)
+
+  @@unique([cognitiveAgentId, skillId], map: "uq_cognitive_agent_skill")
+  @@index([cognitiveAgentId, enabled, priority], map: "idx_agent_skill_effective")
+  @@index([skillId], map: "idx_agent_skill_skill")
+  @@map("cognitive_agent_skill_binding")
+}
+
+model SkillInstallation {
+  id                String                  @id @default(uuid())
+  skillId           String                  @map("skill_id")
+  scopeType         SkillPrincipalType      @map("scope_type")
+  scopeId           String                  @map("scope_id") @db.VarChar(240)
+  installedByUserId String                  @map("installed_by_user_id")
+  pinnedVersionId   String?                 @map("pinned_version_id")
+  status            SkillInstallationStatus @default(INSTALLED)
+  enabled           Boolean                 @default(true)
+  pinned            Boolean                 @default(false)
+  config            Json                    @default("{}")
+  installedAt       DateTime                @default(now()) @map("installed_at")
+  updatedAt         DateTime                @updatedAt @map("updated_at")
+  removedAt         DateTime?               @map("removed_at")
+
+  skill         Skill         @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  installedBy   User          @relation("SkillInstaller", fields: [installedByUserId], references: [id], onDelete: Restrict)
+  pinnedVersion SkillVersion? @relation("SkillInstallationVersion", fields: [pinnedVersionId], references: [id], onDelete: SetNull)
+
+  @@unique([scopeType, scopeId, skillId], map: "uq_skill_installation_scope")
+  @@index([skillId, status], map: "idx_skill_installation_status")
+  @@map("skill_installation")
+}
+
+model ConversationSkillActivation {
+  id                String              @id @default(uuid())
+  conversationId    String              @map("conversation_id")
+  skillId           String              @map("skill_id")
+  activationMode    SkillActivationMode
+  enabled           Boolean             @default(true)
+  priority          Int                 @default(0)
+  config            Json                @default("{}")
+  selectedVersionId String?             @map("selected_version_id")
+  createdByUserId   String              @map("created_by_user_id")
+  expiresAt         DateTime?           @map("expires_at")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  skill           Skill         @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  selectedVersion SkillVersion? @relation("ConversationSkillVersion", fields: [selectedVersionId], references: [id], onDelete: SetNull)
+  createdBy       User          @relation("ConversationSkillActivator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@unique([conversationId, skillId], map: "uq_conversation_skill")
+  @@index([conversationId, enabled], map: "idx_conversation_skill_enabled")
+  @@index([expiresAt], map: "idx_conversation_skill_expiry")
+  @@map("conversation_skill_activation")
+}
+
+model SkillAclEntry {
+  id            String                  @id @default(uuid())
+  skillId       String                  @map("skill_id")
+  principalType SkillPrincipalType      @map("principal_type")
+  principalId   String                  @map("principal_id") @db.VarChar(240)
+  permissions   SkillPermissionAction[]
+  createdAt     DateTime                @default(now()) @map("created_at")
+  updatedAt     DateTime                @updatedAt @map("updated_at")
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([skillId, principalType, principalId], map: "uq_skill_acl_principal")
+  @@index([principalType, principalId], map: "idx_skill_acl_lookup")
+  @@map("skill_acl_entry")
+}
+
+model SkillValidationRun {
+  id                String                @id @default(uuid())
+  skillVersionId    String                @map("skill_version_id")
+  status            SkillValidationStatus @default(PENDING)
+  scannerVersion    String                @map("scanner_version") @db.VarChar(120)
+  packageChecksum   String                @map("package_checksum") @db.VarChar(128)
+  structuralResult  Json                  @default("{}") @map("structural_result")
+  securityResult    Json                  @default("{}") @map("security_result")
+  dependencyResult  Json                  @default("{}") @map("dependency_result")
+  diagnostics       Json                  @default("[]")
+  requestedByUserId String                @map("requested_by_user_id")
+  startedAt         DateTime?             @map("started_at")
+  finishedAt        DateTime?             @map("finished_at")
+  createdAt         DateTime              @default(now()) @map("created_at")
+
+  version     SkillVersion @relation(fields: [skillVersionId], references: [id], onDelete: Cascade)
+  requestedBy User         @relation("SkillValidationRequester", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([skillVersionId, status], map: "idx_skill_validation_status")
+  @@map("skill_validation_run")
+}
+
+model SkillUsageEvent {
+  id               String                @id @default(uuid())
+  skillId          String                @map("skill_id")
+  skillVersionId   String                @map("skill_version_id")
+  userId           String?               @map("user_id")
+  agentId          String?               @map("agent_id")
+  conversationId   String?               @map("conversation_id")
+  traceId          String?               @map("trace_id") @db.VarChar(128)
+  turnId           String?               @map("turn_id") @db.VarChar(128)
+  activationMode   SkillActivationMode
+  activationSource SkillActivationSource
+  outcome          SkillUsageOutcome
+  reason           String?               @db.Text
+  confidence       Float?
+  tokenEstimate    Int?                  @map("token_estimate")
+  durationMs       Int?                  @map("duration_ms")
+  dependencyStatus Json                  @default("{}") @map("dependency_status")
+  metadata         Json                  @default("{}")
+  occurredAt       DateTime              @default(now()) @map("occurred_at")
+
+  skill        Skill         @relation(fields: [skillId], references: [id], onDelete: Restrict)
+  version      SkillVersion  @relation(fields: [skillVersionId], references: [id], onDelete: Restrict)
+  user         User?         @relation("SkillUsageUser", fields: [userId], references: [id], onDelete: SetNull)
+  agent        Agent?        @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  @@index([skillId, occurredAt], map: "idx_skill_usage_skill_time")
+  @@index([agentId, occurredAt], map: "idx_skill_usage_agent_time")
+  @@index([conversationId, occurredAt], map: "idx_skill_usage_conversation")
+  @@index([traceId], map: "idx_skill_usage_trace")
+  @@map("skill_usage_event")
+}
+
+model SkillAuditLog {
+  id             String   @id @default(uuid())
+  skillId        String   @map("skill_id")
+  skillVersionId String?  @map("skill_version_id")
+  actorUserId    String?  @map("actor_user_id")
+  eventType      String   @map("event_type") @db.VarChar(120)
+  severity       String   @default("info") @db.VarChar(32)
+  traceId        String?  @map("trace_id") @db.VarChar(128)
+  beforeData     Json?    @map("before_data")
+  afterData      Json?    @map("after_data")
+  metadata       Json     @default("{}")
+  occurredAt     DateTime @default(now()) @map("occurred_at")
+
+  skill   Skill         @relation(fields: [skillId], references: [id], onDelete: Restrict)
+  version SkillVersion? @relation(fields: [skillVersionId], references: [id], onDelete: SetNull)
+  actor   User?         @relation("SkillAuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([skillId, occurredAt], map: "idx_skill_audit_skill_time")
+  @@index([eventType, occurredAt], map: "idx_skill_audit_event_time")
+  @@index([traceId], map: "idx_skill_audit_trace")
+  @@map("skill_audit_log")
+}
+
+model GrowObserverState {
+  id                        String    @id @default(cuid())
+  userId                    String    @map("user_id") @db.VarChar(120)
+  agentId                   String    @map("agent_id") @db.VarChar(120)
+  toolIterationsSinceReview Int       @default(0) @map("tool_iterations_since_review")
+  lastReviewAt              DateTime? @map("last_review_at")
+  lastReviewedTurnId        String?   @map("last_reviewed_turn_id") @db.VarChar(180)
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  @@unique([userId, agentId], map: "uq_grow_observer_user_agent")
+  @@index([lastReviewAt], map: "idx_grow_observer_last_review")
+  @@map("grow_observer_state")
+}
+
+model GrowReview {
+  id                  String           @id @default(cuid())
+  eventId             String           @unique @map("event_id") @db.VarChar(180)
+  triggerTurnId       String           @unique @map("trigger_turn_id") @db.VarChar(180)
+  triggerTraceId      String           @map("trigger_trace_id") @db.VarChar(180)
+  userId              String           @map("user_id") @db.VarChar(120)
+  agentId             String           @map("agent_id") @db.VarChar(120)
+  conversationId      String           @map("conversation_id") @db.VarChar(120)
+  triggerType         GrowTriggerType  @map("trigger_type")
+  status              GrowReviewStatus @default(PENDING)
+  evidenceJson        Json             @default("[]") @map("evidence_json")
+  focusResultJson     Json?            @map("focus_result_json")
+  createdDraftIds     String[]         @default([]) @map("created_draft_ids")
+  publishedVersionIds String[]         @default([]) @map("published_version_ids")
+  rejectedVersionIds  String[]         @default([]) @map("rejected_version_ids")
+  errorJson           Json?            @map("error_json")
+  attemptCount        Int              @default(0) @map("attempt_count")
+  availableAt         DateTime         @default(now()) @map("available_at")
+  claimedBy           String?          @map("claimed_by") @db.VarChar(180)
+  claimExpiresAt      DateTime?        @map("claim_expires_at")
+  startedAt           DateTime?        @map("started_at")
+  completedAt         DateTime?        @map("completed_at")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  @@index([status, availableAt], map: "idx_grow_review_pending")
+  @@index([userId, createdAt], map: "idx_grow_review_user_time")
+  @@index([agentId, createdAt], map: "idx_grow_review_agent_time")
+  @@index([claimExpiresAt], map: "idx_grow_review_claim_expiry")
+  @@map("grow_review")
+}
+
+model GrowEffectObservation {
+  id                  String    @id @default(cuid())
+  skillId             String    @map("skill_id")
+  skillVersionId      String    @map("skill_version_id")
+  previousVersionId   String?   @map("previous_version_id")
+  reviewId            String    @map("review_id")
+  userId              String    @map("user_id") @db.VarChar(120)
+  publishedAt         DateTime  @map("published_at")
+  completedCount      Int       @default(0) @map("completed_count")
+  failedCount         Int       @default(0) @map("failed_count")
+  rejectedCount       Int       @default(0) @map("rejected_count")
+  consecutiveFailures Int       @default(0) @map("consecutive_failures")
+  totalObserved       Int       @default(0) @map("total_observed")
+  rolledBackAt        DateTime? @map("rolled_back_at")
+  closedAt            DateTime? @map("closed_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@unique([skillId, skillVersionId], map: "uq_grow_effect_skill_version")
+  @@index([userId, closedAt], map: "idx_grow_effect_user_open")
+  @@index([reviewId], map: "idx_grow_effect_review")
+  @@map("grow_effect_observation")
+}
+
+model GrowEffectEventReceipt {
+  id         String   @id @default(cuid())
+  eventId    String   @unique @map("event_id") @db.VarChar(180)
+  occurredAt DateTime @default(now()) @map("occurred_at")
+
+  @@map("grow_effect_event_receipt")
+}
+
+model CognitiveAgentProfile {
+  id String @id @default(cuid())
+
+  agentId String @unique @map("agent_id")
+
+  writingProfile  Json? @map("writing_profile")
+  reasoningPolicy Json? @map("reasoning_policy")
+  artifactPolicy  Json? @map("artifact_policy")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("cognitive_agent_profile")
+}
+
+model ServiceAgentProfile {
+  id String @id @default(cuid())
+
+  agentId String @unique @map("agent_id")
+
+  merchantProfile Json? @map("merchant_profile")
+  orderPolicy     Json? @map("order_policy")
+  riskPolicy      Json? @map("risk_policy")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("service_agent_profile")
+}
+
+model Conversation {
+  id    String @id @default(uuid())
+  title String @default("")
+
+  titleUpdatedAt DateTime?
+  titleVersion   Int       @default(1)
+
+  userId  String
+  agentId String
+
+  currentLeafMessageId String? @map("current_leaf_message_id")
+  parentConversationId String? @map("parent_conversation_id")
+  branchFromMessageId  String? @map("branch_from_message_id")
+  branchRequestId      String? @unique @map("branch_request_id")
+
+  endpoint String? @db.VarChar(80)
+  model    String? @db.VarChar(120)
+
+  pinned      Boolean @default(false)
+  isTemporary Boolean @default(false) @map("is_temporary")
+  isArchived  Boolean @default(false)
+
+  messageCount  Int       @default(0) @map("message_count")
+  lastMessageAt DateTime? @map("last_message_at")
+
+  deletedAt  DateTime? @map("deleted_at")
+  purgeAfter DateTime? @map("purge_after")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  meta Json? @default("{}")
+
+  agent Agent @relation("AgentConversations", fields: [agentId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  messages              Message[]                     @relation("ConversationMessages")
+  parentConversation    Conversation?                 @relation("ConversationBranches", fields: [parentConversationId], references: [id], onDelete: SetNull)
+  childBranches         Conversation[]                @relation("ConversationBranches")
+  branchFromMessage     Message?                      @relation("ConversationBranchOrigin", fields: [branchFromMessageId], references: [id], onDelete: SetNull)
+  runtimeObjects        RuntimeObject[]
+  workflowRuns          WorkflowRun[]                 @relation("WorkflowRunConversation")
+  skillActivations      ConversationSkillActivation[]
+  skillUsageEvents      SkillUsageEvent[]
+  turnRequests          ChatTurnRequest[]
+  runtimeTimelineEvents RuntimeTimelineEvent[]
+  runtimeSetting        ConversationRuntimeSetting?
+  automations           Automation[]
+
+  @@index([agentId])
+  @@index([userId])
+  @@index([userId, agentId, createdAt])
+  @@index([userId, agentId, updatedAt])
+  @@index([currentLeafMessageId])
+  @@index([parentConversationId])
+  @@index([branchFromMessageId])
+  @@index([lastMessageAt, createdAt])
+  @@index([purgeAfter], map: "idx_conversation_purge_after")
+}
+
+model ConversationRuntimeSetting {
+  conversationId String                @id @map("conversation_id")
+  userId         String                @map("user_id")
+  workspaceId    String?               @map("workspace_id")
+  permissionMode RuntimePermissionMode @default(confirm_required) @map("permission_mode")
+  formatLocale   String?               @map("format_locale")
+  timeZone       String?               @map("time_zone")
+  version        Int                   @default(1)
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @updatedAt @map("updated_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt], map: "idx_conversation_runtime_setting_user")
+  @@index([workspaceId], map: "idx_conversation_runtime_setting_workspace")
+  @@map("conversation_runtime_setting")
+}
+
+
+enum AutomationStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum AutomationRunStatus {
+  PENDING
+  RUNNING
+  CANCELLING
+  SUCCEEDED
+  FAILED
+  BLOCKED
+  CANCELLED
+}
+
+model Automation {
+  id               String           @id @default(uuid())
+  userId           String           @map("user_id") @db.VarChar(120)
+  agentId          String           @map("agent_id") @db.VarChar(120)
+  conversationId   String           @map("conversation_id")
+  anchorMessageId  String?          @map("anchor_message_id") @db.VarChar(180)
+  title            String           @db.VarChar(240)
+  instruction      String           @db.Text
+  trigger          Json
+  stopPolicy       Json             @map("stop_policy")
+  deliveryPolicy   Json             @map("delivery_policy")
+  status           AutomationStatus @default(ACTIVE)
+  nextWakeAt       DateTime?        @map("next_wake_at")
+  lastRunAt        DateTime?        @map("last_run_at")
+  expiresAt        DateTime?        @map("expires_at")
+  runCount         Int              @default(0) @map("run_count")
+  completedAt      DateTime?        @map("completed_at")
+  completionReason String?          @map("completion_reason") @db.VarChar(80)
+  cancelledAt      DateTime?        @map("cancelled_at")
+  cancelledBy      String?          @map("cancelled_by") @db.VarChar(32)
+  cancelReason     String?          @map("cancel_reason") @db.VarChar(240)
+  expiryNoticeSentAt DateTime?      @map("expiry_notice_sent_at")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  conversation Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  runs         AutomationRun[]
+
+  @@index([status, nextWakeAt], map: "idx_automation_due")
+  @@index([userId, status], map: "idx_automation_user_status")
+  @@index([conversationId, status], map: "idx_automation_conversation_status")
+  @@index([anchorMessageId], map: "idx_automation_anchor_message")
+  @@index([expiresAt], map: "idx_automation_expires")
+  @@map("automation")
+}
+
+model AutomationRun {
+  id                 String              @id @default(uuid())
+  automationId       String              @map("automation_id")
+  traceId            String?             @unique @map("trace_id") @db.VarChar(180)
+  scheduledFor       DateTime            @map("scheduled_for")
+  status             AutomationRunStatus @default(PENDING)
+  userMessageId      String?             @map("user_message_id") @db.VarChar(180)
+  assistantMessageId String?             @map("assistant_message_id") @db.VarChar(180)
+  startedAt          DateTime?           @map("started_at")
+  completedAt        DateTime?           @map("completed_at")
+  errorCode          String?             @map("error_code") @db.VarChar(120)
+  errorMessage       String?             @map("error_message") @db.Text
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  automation Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  @@unique([automationId, scheduledFor], map: "uq_automation_run_schedule")
+  @@index([automationId, createdAt], map: "idx_automation_run_history")
+  @@index([status, createdAt], map: "idx_automation_run_pending")
+  @@map("automation_run")
+}
+
+enum ChatTurnRequestStatus {
+  QUEUED
+  STARTING
+  RUNNING
+  WAITING_APPROVAL
+  WAITING_EXTERNAL
+  WAITING_USER
+  CANCELLING
+  CANCELLED
+  SUCCEEDED
+  PARTIAL
+  FAILED
+  BLOCKED
+  DELETED
+}
+
+enum ChatTurnCleanupStatus {
+  NOT_REQUIRED
+  PENDING
+  CONFIRMED
+  PARTIAL
+  TIMED_OUT
+}
+
+model ChatTurnRequest {
+  id                 String                @id @default(uuid())
+  clientMessageId    String
+  traceId            String?               @unique
+  userId             String
+  agentId            String
+  conversationId     String
+  sequence           BigInt
+  status             ChatTurnRequestStatus @default(QUEUED)
+  cleanupStatus      ChatTurnCleanupStatus @default(NOT_REQUIRED)
+  payload            Json
+  userMessageId      String?
+  assistantMessageId String?
+  cancelReason       String?
+  cancelRequestedAt  DateTime?
+  cleanupRequestedAt DateTime?
+  cleanupCompletedAt DateTime?
+  cleanupDiagnostics Json?
+  failureCode        String?
+  failureMessage     String?
+  deletedAt          DateTime?
+  deletedByUserId    String?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  version            Int                   @default(0)
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, clientMessageId])
+  @@unique([conversationId, sequence])
+  @@index([conversationId, status, sequence])
+  @@index([userId, status, updatedAt])
+}
+
+model ConversationDigest {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  agentId        String?
+  topicKey       String?
+  digestText     String
+  messageFromId  String?
+  messageToId    String?
+  sourceTurnIds  String[] @default([])
+  version        Int      @default(1)
+  status         String   @default("ACTIVE")
+  staleScore     Float    @default(0)
+  meta           Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([conversationId, userId])
+  @@index([userId, agentId])
+  @@index([topicKey])
+  @@index([status])
+}
+
+model Message {
+  id             String @id @default(uuid())
+  conversationId String
+
+  parentMessageId String? @map("parent_message_id")
+  rootMessageId   String? @map("root_message_id")
+  branchId        String? @map("branch_id")
+
+  role    MessageRole
+  content String
+
+  contentParts Json? @map("content_parts")
+
+  traceId String? @map("trace_id") @db.VarChar(128)
+
+  senderType    String? @map("sender_type") @db.VarChar(16)
+  senderUserId  String? @map("sender_user_id")
+  senderAgentId String? @map("sender_agent_id")
+
+  model    String? @db.VarChar(120)
+  endpoint String? @db.VarChar(80)
+
+  tokenCount        Int?    @map("token_count")
+  summary           String?
+  summaryTokenCount Int?    @map("summary_token_count")
+
+  status       String  @default("finished") @db.VarChar(32)
+  unfinished   Boolean @default(false)
+  error        Boolean @default(false)
+  finishReason String? @map("finish_reason") @db.VarChar(80)
+
+  citations Json?
+  meta      Json? @default("{}")
+
+  timestamp DateTime  @default(now())
+  deletedAt DateTime? @map("deleted_at")
+
+  conversation         Conversation        @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
+  objectLinks          MessageObjectLink[]
+  conversationBranches Conversation[]      @relation("ConversationBranchOrigin")
+
+  @@index([conversationId])
+  @@index([conversationId, parentMessageId])
+  @@index([parentMessageId])
+  @@index([rootMessageId])
+  @@index([branchId])
+  @@index([senderType, senderUserId])
+  @@index([senderType, senderAgentId])
+  @@index([traceId])
+  @@index([deletedAt], map: "idx_message_deleted_at")
+}
+
+enum LlmCredentialStatus {
+  UNVERIFIED
+  VALID
+  INVALID
+  RATE_LIMITED
+  UNAVAILABLE
+}
+
+model UserLlmCredential {
+  id                 String              @id @default(uuid())
+  userId             String
+  providerKey        String              @db.VarChar(64)
+  apiKey             String              @db.Text
+  keyHint            String?             @db.VarChar(16)
+  status             LlmCredentialStatus @default(UNVERIFIED)
+  verifiedAt         DateTime?
+  lastValidationCode String?             @db.VarChar(80)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, providerKey])
+  @@index([userId])
+  @@index([status])
+}
+
+model UserLlmPreference {
+  userId      String @id
+  providerKey String @db.VarChar(64)
+  modelKey    String @db.VarChar(160)
+
+  visionProviderKey String? @db.VarChar(64)
+  visionModelKey    String? @db.VarChar(160)
+
+  imageProviderKey String? @db.VarChar(64)
+  imageModelKey    String? @db.VarChar(160)
+
+  audioProviderKey String? @db.VarChar(64)
+
+  videoProviderKey String? @db.VarChar(64)
+  videoModelKey    String? @db.VarChar(160)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserVoiceAsset {
+  id                   String  @id @default(uuid())
+  userId               String
+  providerKey          String  @db.VarChar(64)
+  externalVoiceId      String  @db.VarChar(256)
+  displayName          String  @db.VarChar(120)
+  sourceObjectId       String? @db.VarChar(64)
+  consentVersion       String  @db.VarChar(32)
+  requiresVerification Boolean @default(false)
+
+  status       String  @default("ready") @db.VarChar(32)
+  statusReason String? @db.VarChar(120)
+
+  metadata  Json?     @default("{}")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, providerKey, externalVoiceId])
+  @@index([userId, providerKey])
+  @@index([status], map: "idx_user_voice_asset_status")
+  @@index([deletedAt])
+}
+
+model UserWebSearchSetting {
+  userId             String              @id
+  providerKey        String              @db.VarChar(64)
+  apiKey             String              @db.Text
+  keyHint            String?             @db.VarChar(16)
+  status             LlmCredentialStatus @default(UNVERIFIED)
+  verifiedAt         DateTime?
+  lastValidationCode String?             @db.VarChar(80)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([providerKey])
+  @@index([status])
+}
+
+
+model RuntimeWorkspace {
+  id String @id @default(cuid())
+
+  workspaceKey String @unique @map("workspace_key") @db.VarChar(180)
+
+  userId         String  @map("user_id")
+  agentId        String? @map("agent_id")
+  conversationId String? @map("conversation_id")
+
+  stateJson Json @default("{}") @map("state_json")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  workflowRuns WorkflowRun[] @relation("WorkflowRunWorkspace")
+
+  @@index([userId], map: "idx_runtime_workspace_user")
+  @@index([agentId], map: "idx_runtime_workspace_agent")
+  @@index([userId, agentId], map: "idx_runtime_workspace_user_agent")
+  @@index([userId, conversationId], map: "idx_runtime_workspace_user_conversation")
+  @@index([agentId, conversationId], map: "idx_runtime_workspace_agent_conversation")
+  @@index([conversationId], map: "idx_runtime_workspace_conversation")
+  @@index([workspaceKey], map: "idx_runtime_workspace_key")
+  @@index([deletedAt], map: "idx_runtime_workspace_deleted_at")
+  @@map("runtime_workspace")
+}
+
+
+enum StartFullAttemptStatus {
+  RUNNING
+  FAILED
+  DONE
+}
+
+enum StartFullAttemptStage {
+  INIT
+  GROUP
+  CEO
+  PLAN
+  GRAPH
+  ORG
+  KICKOFF
+  EXECUTION
+  DONE
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum SkillStatus {
+  DRAFT
+  VALIDATING
+  ACTIVE
+  DISABLED
+  STALE
+  ARCHIVED
+  REJECTED
+}
+
+enum SkillVersionStatus {
+  DRAFT
+  VALIDATING
+  PUBLISHED
+  REJECTED
+  SUPERSEDED
+}
+
+enum SkillVisibility {
+  PRIVATE
+  ORGANIZATION
+  PUBLIC
+}
+
+enum SkillSourceKind {
+  BUILTIN
+  REPOSITORY
+  UPLOAD
+  INLINE
+  IMPORTED
+}
+
+enum SkillTrustLevel {
+  BUILTIN
+  TRUSTED
+  COMMUNITY
+  USER
+}
+
+enum SkillSecurityState {
+  CLEAR
+  REVIEW_REQUIRED
+  QUARANTINED
+  BLOCKED
+}
+
+enum SkillActivationMode {
+  MANUAL
+  AUTOMATIC
+  ALWAYS
+  DISABLED
+}
+
+enum SkillVersionPolicy {
+  FOLLOW_CURRENT
+  PINNED
+  CONSTRAINT
+}
+
+enum SkillFileType {
+  REFERENCE
+  SCRIPT
+  ASSET
+  LICENSE
+  OTHER
+}
+
+enum SkillSchemaKind {
+  INPUT
+  OUTPUT
+  CONFIG
+}
+
+enum SkillValidationStatus {
+  PENDING
+  RUNNING
+  PASSED
+  FAILED
+  CANCELLED
+}
+
+enum SkillInstallationStatus {
+  INSTALLED
+  DISABLED
+  UPDATE_AVAILABLE
+  QUARANTINED
+  UNINSTALLED
+}
+
+enum SkillPrincipalType {
+  USER
+  ORGANIZATION
+  TENANT
+  PUBLIC
+}
+
+enum SkillPermissionAction {
+  VIEW
+  USE
+  EDIT
+  MANAGE
+  INSTALL
+}
+
+enum SkillActivationSource {
+  USER_EXPLICIT
+  SESSION_OVERRIDE
+  AGENT_BINDING
+  PUBLIC_RELEVANCE
+  ALWAYS_PRELOAD
+  MODEL_RESOLUTION
+}
+
+enum SkillUsageOutcome {
+  SELECTED
+  LOADED
+  COMPLETED
+  FAILED
+  REJECTED
+  DEPENDENCY_MISSING
+}
+
+enum GrowReviewStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  SKIPPED
+  FAILED
+}
+
+enum GrowTriggerType {
+  EXPLICIT_LEARNING
+  EXPLICIT_CORRECTION
+  EXPLICIT_PREFERENCE
+  TOOL_INTERVAL
+  LOADED_SKILL_METHOD_FAILURE
+}
+
+enum SeekmoreEntityType {
+  COGNITIVE
+  SERVICE
+}
+
+enum KnowledgeParseStatus {
+  PENDING
+  PARSING
+  READY
+  FAILED
+}
+
+enum Plan {
+  FREE
+  PLUS
+  PRO
+}
+
+enum MemoryType {
+  PUBLIC
+  PRIVATE
+}
+
+enum GroupRole {
+  OWNER
+  ADMIN
+  MEMBER
+  BOT
+}
+
+enum MemberType {
+  USER
+  AGENT
+  SERVICE
+}
+
+enum MessageRole {
+  SYSTEM
+  USER
+  ASSISTANT
+  TOOL
+}
+
+enum AgentVisibility {
+  PRIVATE
+  PUBLIC_FREE
+  PUBLIC_PAID
+}
+
+enum GroupVisibility {
+  PRIVATE
+  SHARED_LINK
+  PUBLIC
+}
+
+enum AgentAccessLevel {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum ExecutionStage {
+  Bootstrap
+  Executing
+  QA
+  Delivery
+  Done
+  Failed
+}
+
+enum OrgCoordinationMode {
+  hierarchical
+  peer
+  hybrid
+  auto
+}
+
+enum OrgRoleKind {
+  CEO
+  LEADER
+  WORKER
+  ASSISTANT
+  OBSERVER
+}
+
+enum OrgPositionStatus {
+  OPEN
+  BOUND
+  DISABLED
+}
+
+enum PlanningEngine {
+  mock
+  pddl
+  htn
+  bpmn
+  temporal
+  unknown
+  soft
+}
+
+enum PlanningRunStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+
+
+model McpServerConfig {
+  id                 String    @id @default(cuid())
+  name               String    @unique
+  stableKey          String?   @unique @map("stable_key")
+  source             String    @default("USER")
+  ownerUserId        String?   @map("owner_user_id")
+  displayName        String?
+  description        String?
+  publisher          String?
+  iconKey            String?   @map("icon_key")
+  visibility         String    @default("PRIVATE")
+  reviewStatus       String    @default("pending") @map("review_status")
+  originType         String    @default("FORM") @map("origin_type")
+  registryIdentifier String?   @map("registry_identifier")
+  registryVersion    String?   @map("registry_version")
+  repository         String?
+  lastSyncedAt       DateTime? @map("last_synced_at")
+  protocolPreference String    @default("auto") @map("protocol_preference")
+  managedRuntime     String    @default("REMOTE") @map("managed_runtime")
+  transport          String
+  status             String    @default("enabled")
+  trustLevel         String
+  scope              String
+  endpoint           String?
+  command            String?
+  args               String[]  @default([])
+  workingDirectory   String?   @map("working_directory")
+  env                Json      @default("{}")
+  headers            Json      @default("{}")
+  authKind           String    @default("none")
+  authConfig         Json      @default("{}")
+  allowedDomains     String[]  @default([])
+  deniedDomains      String[]  @default([])
+  allowedRoles       String[]  @default([])
+  allowedToolNames   String[]  @default([])
+  deniedToolNames    String[]  @default([])
+  toolPolicy         Json      @default("{}") @map("tool_policy")
+  requestScoped      Boolean   @default(false)
+  timeoutMs          Int?
+  tenantId           String?
+  createdBy          String?
+  updatedBy          String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  owner            User?                @relation("McpDefinitionOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  installations    McpInstallation[]
+  authSessions     McpAuthSession[]
+  toolSnapshots    McpToolSnapshot[]
+  connectionStates McpConnectionState[]
+  invocations      McpToolInvocation[]
+  skillBindings    SkillMcpBinding[]
+
+  @@index([source, visibility, reviewStatus])
+  @@index([ownerUserId, status])
+  @@index([status])
+  @@index([scope, tenantId])
+}
+
+model McpInstallation {
+  id                 String    @id @default(cuid())
+  userId             String
+  serverId           String
+  enabled            Boolean   @default(true)
+  status             String    @default("installed")
+  configurationState String    @default("ready") @map("configuration_state")
+  allowedToolNames   String[]  @default([]) @map("allowed_tool_names")
+  deniedToolNames    String[]  @default([]) @map("denied_tool_names")
+  installedAt        DateTime  @default(now()) @map("installed_at")
+  removedAt          DateTime? @map("removed_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  user             User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server           McpServerConfig      @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  credential       McpCredential?
+  toolSnapshots    McpToolSnapshot[]
+  connectionStates McpConnectionState[]
+  invocations      McpToolInvocation[]
+
+  @@unique([userId, serverId], map: "uq_mcp_installation_user_server")
+  @@index([userId, enabled, status], map: "idx_mcp_installation_user_state")
+  @@index([serverId, status], map: "idx_mcp_installation_server_state")
+}
+
+model McpCredential {
+  id               String   @id @default(cuid())
+  installationId   String   @unique @map("installation_id")
+  userId           String   @map("user_id")
+  kind             String
+  storageLocation  String   @map("storage_location")
+  encryptedPayload Bytes?   @map("encrypted_payload")
+  encryptionIv     Bytes?   @map("encryption_iv")
+  authTag          Bytes?   @map("auth_tag")
+  secretRef        String?  @map("secret_ref")
+  keyVersion       Int      @default(1) @map("key_version")
+  maskedHint       String?  @map("masked_hint")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  installation McpInstallation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind], map: "idx_mcp_credential_user_kind")
+}
+
+model McpAuthSession {
+  id               String    @id @default(cuid())
+  serverId         String
+  tenantId         String?   @default("")
+  userId           String
+  agentId          String?   @default("")
+  status           String    @default("active")
+  authKind         String
+  accessToken      String? // legacy read-only fallback; new writes are encrypted
+  refreshToken     String? // legacy read-only fallback; new writes are encrypted
+  encryptedPayload Bytes?    @map("encrypted_payload")
+  encryptionIv     Bytes?    @map("encryption_iv")
+  authTag          Bytes?    @map("auth_tag")
+  keyVersion       Int       @default(1) @map("key_version")
+  tokenType        String?
+  scope            String?
+  expiresAt        DateTime?
+  metadata         Json      @default("{}")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  server McpServerConfig @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, tenantId, userId, agentId], name: "serverId_tenantId_userId_agentId")
+  @@index([serverId, status])
+  @@index([userId])
+}
+
+model McpOAuthState {
+  id                    String   @id @default(cuid())
+  serverId              String
+  tenantId              String?
+  userId                String
+  agentId               String?
+  state                 String   @unique
+  codeVerifier          String? // legacy read-only fallback; new writes are encrypted
+  encryptedCodeVerifier Bytes?   @map("encrypted_code_verifier")
+  codeVerifierIv        Bytes?   @map("code_verifier_iv")
+  codeVerifierAuthTag   Bytes?   @map("code_verifier_auth_tag")
+  keyVersion            Int      @default(1) @map("key_version")
+  redirectUri           String
+  expiresAt             DateTime
+  metadata              Json     @default("{}")
+  createdAt             DateTime @default(now())
+
+  @@index([serverId])
+  @@index([expiresAt])
+}
+
+model McpConnectionState {
+  id                 String    @id @default(cuid())
+  identityHash       String    @unique
+  serverId           String
+  installationId     String?   @map("installation_id")
+  tenantId           String?
+  userId             String?
+  agentId            String?
+  authSessionId      String?
+  scope              String
+  status             String
+  failureCode        String?
+  failureMessage     String?
+  protocolEra        String?   @map("protocol_era")
+  protocolVersion    String?   @map("protocol_version")
+  lastConnectedAt    DateTime?
+  lastDisconnectedAt DateTime?
+  lastHealthCheckAt  DateTime?
+  updatedAt          DateTime  @updatedAt
+  createdAt          DateTime  @default(now())
+
+  server       McpServerConfig  @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  installation McpInstallation? @relation(fields: [installationId], references: [id], onDelete: Cascade)
+
+  @@index([serverId, status])
+  @@index([installationId, status])
+  @@index([tenantId, userId, agentId])
+}
+
+model McpToolSnapshot {
+  id             String   @id @default(cuid())
+  runtimeToolId  String   @unique
+  serverId       String
+  installationId String?  @map("installation_id")
+  serverName     String
+  toolName       String
+  title          String?
+  description    String?
+  inputSchema    Json     @default("{}")
+  outputSchema   Json?
+  annotations    Json?
+  snapshotHash   String
+  status         String   @default("available")
+  discoveredAt   DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  server       McpServerConfig     @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  installation McpInstallation?    @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  invocations  McpToolInvocation[]
+
+  @@unique([installationId, toolName], map: "uq_mcp_snapshot_installation_tool")
+  @@index([serverId, status])
+  @@index([installationId, status])
+  @@index([snapshotHash])
+}
+
+model McpToolInvocation {
+  id             String    @id @default(cuid())
+  runtimeToolId  String
+  serverId       String
+  installationId String?   @map("installation_id")
+  toolSnapshotId String
+  tenantId       String?
+  userId         String
+  agentId        String?
+  conversationId String?   @map("conversation_id")
+  turnId         String?   @map("turn_id")
+  workflowId     String?   @map("workflow_id")
+  stepId         String?   @map("step_id")
+  requestId      String?   @map("request_id")
+  traceId        String?
+  status         String
+  arguments      Json      @default("{}")
+  result         Json?
+  errorCode      String?
+  errorMessage   String?
+  startedAt      DateTime  @default(now())
+  finishedAt     DateTime?
+
+  server       McpServerConfig  @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  installation McpInstallation? @relation(fields: [installationId], references: [id], onDelete: SetNull)
+  snapshot     McpToolSnapshot  @relation(fields: [toolSnapshotId], references: [id], onDelete: Restrict)
+
+  @@index([runtimeToolId])
+  @@index([serverId, status])
+  @@index([installationId, status])
+  @@index([tenantId, userId])
+  @@index([conversationId, turnId])
+  @@index([traceId])
+}
+
+model McpAuditLog {
+  id            String   @id @default(cuid())
+  eventType     String
+  serverId      String?
+  runtimeToolId String?
+  tenantId      String?
+  userId        String?
+  agentId       String?
+  traceId       String?
+  severity      String
+  code          String?
+  message       String?
+  metadata      Json     @default("{}")
+  occurredAt    DateTime @default(now())
+
+  @@index([eventType, occurredAt])
+  @@index([serverId])
+  @@index([runtimeToolId])
+  @@index([tenantId, userId])
+  @@index([traceId])
+}
+
+
+model RuntimeEventOutbox {
+  id               String    @id @default(cuid())
+  eventId          String    @unique @map("event_id") @db.VarChar(180)
+  eventType        String    @map("event_type") @db.VarChar(160)
+  aggregateType    String    @map("aggregate_type") @db.VarChar(80)
+  aggregateId      String    @map("aggregate_id") @db.VarChar(180)
+  payloadJson      Json      @map("payload_json")
+  deduplicationKey String    @unique @map("deduplication_key") @db.VarChar(300)
+  status           String    @default("pending") @db.VarChar(40)
+  attempts         Int       @default(0)
+  availableAt      DateTime  @default(now()) @map("available_at")
+  claimedBy        String?   @map("claimed_by") @db.VarChar(180)
+  claimExpiresAt   DateTime? @map("claim_expires_at")
+  deliveredAt      DateTime? @map("delivered_at")
+  lastError        String?   @map("last_error")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@index([status, availableAt], map: "idx_runtime_outbox_pending")
+  @@index([aggregateId, createdAt], map: "idx_runtime_outbox_aggregate")
+  @@index([claimExpiresAt], map: "idx_runtime_outbox_claim_expiry")
+  @@map("runtime_event_outbox")
+}
+
+model RuntimeTimelineEvent {
+  id                       String   @id @default(cuid())
+  eventId                  String   @unique @map("event_id") @db.VarChar(180)
+  conversationId           String   @map("conversation_id")
+  presentationMessageId    String   @map("presentation_message_id") @db.VarChar(180)
+  sourceAssistantMessageId String?  @map("source_assistant_message_id") @db.VarChar(180)
+  traceId                  String?  @map("trace_id") @db.VarChar(180)
+  workflowId               String?  @map("workflow_id") @db.VarChar(180)
+  identityKey              String   @map("identity_key") @db.VarChar(260)
+  version                  Int      @default(1)
+  sequence                 BigInt   @default(autoincrement())
+  type                     String   @db.VarChar(120)
+  payloadJson              Json     @map("payload_json")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([presentationMessageId, identityKey, version], map: "uq_runtime_timeline_presentation_identity_version")
+  @@index([conversationId, sequence], map: "idx_runtime_timeline_conversation_sequence")
+  @@index([presentationMessageId, sequence], map: "idx_runtime_timeline_presentation_sequence")
+  @@index([workflowId, sequence], map: "idx_runtime_timeline_workflow_sequence")
+  @@map("runtime_timeline_event")
+}
+
+
+enum WorkflowRunStatus {
+  RUNNING
+  WAITING
+  BLOCKED
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WorkflowWaitReason {
+  CONTINUATION
+  USER_INPUT
+  APPROVAL
+  EXTERNAL_DEPENDENCY
+  RESOURCE_CONFLICT
+}
+
+enum WorkflowContinuationMode {
+  MANUAL
+  AUTO
+}
+
+enum WorkflowPhaseStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  BLOCKED
+  FAILED
+  SKIPPED
+  CANCELLED
+}
+
+enum WorkflowTurnTrigger {
+  USER
+  AUTO
+  RESUME
+  RECOVERY
+}
+
+enum RuntimePermissionMode {
+  confirm_required
+  audit_autorun
+  full_access
+}
+
+enum RuntimeApprovalScopeType {
+  TURN
+  WORKFLOW
+}
+
+enum RuntimeRiskLevel {
+  low
+  medium
+  high
+  forbidden
+}
+
+model WorkflowRun {
+  id                   String   @id @default(cuid())
+  userId               String   @map("user_id")
+  agentId              String   @map("agent_id")
+  conversationId       String   @map("conversation_id")
+  branchId             String?  @map("branch_id") @db.VarChar(180)
+  workspaceId          String?  @map("workspace_id")
+  initialUserMessageId String   @map("initial_user_message_id") @db.VarChar(180)
+  inputObjectIds       String[] @default([]) @map("input_object_ids")
+
+  title        String @db.VarChar(256)
+  goal         String @db.Text
+  contractJson Json   @default("{}") @map("contract_json")
+
+  status           WorkflowRunStatus        @default(RUNNING)
+  waitReason       WorkflowWaitReason?      @map("wait_reason")
+  continuationMode WorkflowContinuationMode @default(MANUAL) @map("continuation_mode")
+  permissionMode   RuntimePermissionMode    @default(confirm_required) @map("permission_mode")
+  currentPhaseId   String?                  @map("current_phase_id") @db.VarChar(180)
+
+  leaseOwner     String?   @map("lease_owner") @db.VarChar(180)
+  leaseExpiresAt DateTime? @map("lease_expires_at")
+  fencingToken   BigInt    @default(0) @map("fencing_token")
+  version        Int       @default(1)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  completedAt DateTime? @map("completed_at")
+  failedAt    DateTime? @map("failed_at")
+  cancelledAt DateTime? @map("cancelled_at")
+
+  user         User              @relation("WorkflowRunUser", fields: [userId], references: [id], onDelete: Cascade)
+  agent        Agent             @relation("WorkflowRunAgent", fields: [agentId], references: [id], onDelete: Restrict)
+  conversation Conversation      @relation("WorkflowRunConversation", fields: [conversationId], references: [id], onDelete: Cascade)
+  workspace    RuntimeWorkspace? @relation("WorkflowRunWorkspace", fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  phases    WorkflowPhase[]
+  turnLinks WorkflowTurnLink[]
+  events    WorkflowEvent[]
+
+  @@index([userId, agentId, conversationId, status], map: "idx_workflow_run_scope_status")
+  @@index([conversationId, updatedAt], map: "idx_workflow_run_conversation_updated")
+  @@index([workspaceId, status], map: "idx_workflow_run_workspace_status")
+  @@index([status, leaseExpiresAt], map: "idx_workflow_run_recovery")
+  @@map("workflow_run")
+}
+
+model WorkflowPhase {
+  id             String              @id @default(cuid())
+  workflowId     String              @map("workflow_id")
+  parentPhaseId  String?             @map("parent_phase_id")
+  title          String              @db.VarChar(256)
+  description    String?             @db.Text
+  status         WorkflowPhaseStatus @default(PENDING)
+  position       Int
+  dependencyIds  String[]            @default([]) @map("dependency_ids")
+  acceptanceJson Json?               @map("acceptance_json")
+  resultSummary  String?             @map("result_summary") @db.Text
+  resultJson     Json?               @map("result_json")
+  startedAt      DateTime?           @map("started_at")
+  completedAt    DateTime?           @map("completed_at")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  workflow  WorkflowRun        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  parent    WorkflowPhase?     @relation("WorkflowPhaseTree", fields: [parentPhaseId], references: [id], onDelete: SetNull)
+  children  WorkflowPhase[]    @relation("WorkflowPhaseTree")
+  turnLinks WorkflowTurnLink[]
+  events    WorkflowEvent[]
+
+  @@index([workflowId, position], map: "idx_workflow_phase_position")
+  @@index([workflowId, status, position], map: "idx_workflow_phase_status_position")
+  @@index([workflowId, parentPhaseId, position], map: "idx_workflow_phase_parent_position")
+  @@map("workflow_phase")
+}
+
+model WorkflowTurnLink {
+  id                 String              @id @default(cuid())
+  workflowId         String              @map("workflow_id")
+  phaseId            String?             @map("phase_id")
+  traceId            String              @unique @map("trace_id") @db.VarChar(180)
+  userMessageId      String?             @map("user_message_id") @db.VarChar(180)
+  assistantMessageId String?             @map("assistant_message_id") @db.VarChar(180)
+  trigger            WorkflowTurnTrigger @default(USER)
+  createdAt          DateTime            @default(now()) @map("created_at")
+
+  workflow WorkflowRun    @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  phase    WorkflowPhase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+
+  @@index([workflowId, createdAt], map: "idx_workflow_turn_link_workflow")
+  @@index([phaseId, createdAt], map: "idx_workflow_turn_link_phase")
+  @@map("workflow_turn_link")
+}
+
+model WorkflowEvent {
+  id               String   @id @default(cuid())
+  eventId          String   @unique @map("event_id") @db.VarChar(180)
+  workflowId       String   @map("workflow_id")
+  phaseId          String?  @map("phase_id")
+  sequence         Int
+  type             String   @db.VarChar(160)
+  payloadJson      Json     @map("payload_json")
+  deduplicationKey String   @unique @map("deduplication_key") @db.VarChar(300)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  workflow WorkflowRun    @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  phase    WorkflowPhase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+
+  @@unique([workflowId, sequence], map: "uq_workflow_event_sequence")
+  @@index([workflowId, createdAt], map: "idx_workflow_event_created")
+  @@index([type, createdAt], map: "idx_workflow_event_type")
+  @@map("workflow_event")
+}
+
+model AgentTurn {
+  id                  String                @id @default(cuid())
+  traceId             String                @unique @map("trace_id") @db.VarChar(180)
+  userId              String                @map("user_id") @db.VarChar(120)
+  agentId             String                @map("agent_id") @db.VarChar(120)
+  conversationId      String                @map("conversation_id") @db.VarChar(120)
+  userMessageId       String                @unique @map("user_message_id") @db.VarChar(180)
+  assistantMessageId  String                @unique @map("assistant_message_id") @db.VarChar(180)
+  status              String                @default("running") @db.VarChar(40)
+  kernelSessionId     String                @map("kernel_session_id") @db.VarChar(180)
+  workspaceId         String?               @map("workspace_id")
+  permissionMode      RuntimePermissionMode @default(confirm_required) @map("permission_mode")
+  accessPolicyVersion Int                   @default(1) @map("access_policy_version")
+  requestJson         Json?                 @map("request_json")
+  resultJson          Json?                 @map("result_json")
+  errorJson           Json?                 @map("error_json")
+  startedAt           DateTime              @default(now()) @map("started_at")
+  completedAt         DateTime?             @map("completed_at")
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
+
+  inputs      AgentTurnInput[]
+  events      AgentTurnEvent[]
+  checkpoints AgentTurnCheckpoint[]
+  approvals   AgentApproval[]
+
+  @@index([userId, conversationId], map: "idx_agent_turn_owner")
+  @@index([conversationId, startedAt], map: "idx_agent_turn_conversation_time")
+  @@index([conversationId, status, startedAt], map: "idx_agent_turn_active_scope")
+  @@index([workspaceId, status], map: "idx_agent_turn_workspace_status")
+  @@index([status], map: "idx_agent_turn_status")
+  @@map("agent_turn")
+}
+
+model AgentTurnCheckpoint {
+  id                String   @id @default(cuid())
+  turnId            String   @map("turn_id")
+  stateJson         Json     @map("state_json")
+  pendingToolCallId String?  @map("pending_tool_call_id") @db.VarChar(180)
+  pendingApprovalId String?  @map("pending_approval_id") @db.VarChar(180)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  turn AgentTurn @relation(fields: [turnId], references: [id], onDelete: Cascade)
+
+  @@index([turnId, createdAt], map: "idx_agent_turn_checkpoint_turn")
+  @@index([pendingApprovalId], map: "idx_agent_turn_checkpoint_approval")
+  @@map("agent_turn_checkpoint")
+}
+
+model AgentApproval {
+  id                     String                   @id @default(cuid())
+  approvalId             String                   @unique @map("approval_id") @db.VarChar(180)
+  turnId                 String                   @map("turn_id")
+  traceId                String                   @map("trace_id") @db.VarChar(180)
+  userId                 String                   @map("user_id") @db.VarChar(120)
+  agentId                String                   @map("agent_id") @db.VarChar(120)
+  conversationId         String                   @map("conversation_id") @db.VarChar(120)
+  assistantMessageId     String                   @map("assistant_message_id") @db.VarChar(180)
+  toolCallId             String?                  @map("tool_call_id") @db.VarChar(180)
+  toolName               String                   @map("tool_name") @db.VarChar(180)
+  scopeType              RuntimeApprovalScopeType @map("scope_type")
+  scopeId                String                   @map("scope_id") @db.VarChar(180)
+  workflowId             String?                  @map("workflow_id") @db.VarChar(180)
+  phaseId                String?                  @map("phase_id") @db.VarChar(180)
+  stepId                 String?                  @map("step_id") @db.VarChar(180)
+  iteration              Int?
+  riskLevel              RuntimeRiskLevel         @map("risk_level")
+  descriptorHash         String                   @map("descriptor_hash") @db.VarChar(128)
+  policyVersionAtRequest Int                      @map("policy_version_at_request")
+  permissionMode         RuntimePermissionMode    @map("permission_mode")
+  status                 String                   @default("pending") @db.VarChar(40)
+  decision               String?                  @db.VarChar(40)
+  requestJson            Json                     @map("request_json")
+  errorJson              Json?                    @map("error_json")
+  decidedAt              DateTime?                @map("decided_at")
+  resumedAt              DateTime?                @map("resumed_at")
+  createdAt              DateTime                 @default(now()) @map("created_at")
+  updatedAt              DateTime                 @updatedAt @map("updated_at")
+
+  turn AgentTurn @relation(fields: [turnId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status], map: "idx_agent_approval_user_status")
+  @@index([turnId, status], map: "idx_agent_approval_turn_status")
+  @@index([scopeType, scopeId, status], map: "idx_agent_approval_scope_status")
+  @@index([workflowId, status], map: "idx_agent_approval_workflow_status")
+  @@index([stepId, createdAt], map: "idx_agent_approval_step_time")
+  @@index([descriptorHash], map: "idx_agent_approval_descriptor")
+  @@index([conversationId, createdAt], map: "idx_agent_approval_conversation")
+  @@map("agent_approval")
+}
+
+// User inputs retain product identity while the journal retains execution order.
+model AgentTurnInput {
+  id            String   @id @default(cuid())
+  turnId        String   @map("turn_id")
+  clientInputId String   @map("client_input_id")
+  sequence      Int
+  kind          String   @db.VarChar(40)
+  content       String
+  objectRefs    Json     @map("object_refs")
+  consumedAt    DateTime? @map("consumed_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  turn          AgentTurn @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  @@unique([turnId, clientInputId])
+  @@unique([turnId, sequence])
+  @@index([turnId, consumedAt])
+  @@map("agent_turn_input")
+}
+
+model AgentTurnEvent {
+  id          String   @id @default(cuid())
+  turnId      String   @map("turn_id")
+  sequence    Int
+  kind        String   @db.VarChar(80)
+  iteration   Int
+  payloadJson Json     @map("payload_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+  turn        AgentTurn @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  @@unique([turnId, sequence])
+  @@index([turnId, kind])
+  @@map("agent_turn_event")
+}

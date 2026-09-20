@@ -1,0 +1,293 @@
+/*
+ * SEEKMORE shared visual color system.
+ * AppearanceProvider owns mode state. This file owns reusable colors only.
+ * Geometry, spacing, radius, typography, shadow and behavior stay local.
+ */
+
+:root {
+  /* Surface */
+  --seek-surface-page: #f5f5f5;
+  --seek-surface-page-soft: #f6f7fb;
+  --seek-surface-base: #ffffff;
+  --seek-surface-raised: #ffffff;
+  --seek-surface-soft: #ffffff;
+  --seek-surface-control: #ffffff;
+  --seek-surface-control-alt: #ffffff;
+  --seek-surface-panel: #ffffff;
+  --seek-surface-deep: #ffffff;
+  --seek-surface-subtle: #f8f8f9;
+  --seek-surface-card: #f5f5f5;
+  --seek-surface-settings: #F6F6F6;
+  --seek-surface-input: #f2f2f2;
+  --seek-surface-hover: #f1f1f1;
+  --seek-surface-hover-strong: #f1f1f1;
+  --seek-surface-control-hover: #e7e7e7;
+  --seek-surface-button-hover: #e8e8e8;
+  --seek-surface-list-hover: #eeeeee;
+  --seek-surface-card-hover: #ededed;
+  --seek-surface-chat: #f9f9f9;
+  --seek-surface-chat-raised: #f9f9f9;
+  --seek-surface-item: #f1f1f1;
+  --seek-surface-menu: #f8f8f8;
+  --seek-surface-button-muted: #EDEDED;
+  --seek-surface-button: #E2E2E2;
+  --seek-surface-button-soft: #EEEEEE;
+  --seek-surface-button-alt: #ECECEC;
+  --seek-surface-inverse-soft: rgb(255 255 255 / 10%);
+  --seek-surface-overlay-soft: rgb(255 255 255 / 5%);
+  --seek-surface-pill: rgba(255, 255, 255, 0.78);
+  --seek-surface-neutral-strong: #f1f1f1;
+  --seek-surface-settings-hover: #E3E3E3;
+  --seek-surface-message: #ffffff;
+  --seek-surface-object: #f7f7f8;
+
+  /* Text */
+  --seek-text-primary: #000000;
+  --seek-text-strong: #111111;
+  --seek-text-body: #1f2937;
+  --seek-text-input: #252525;
+  --seek-text-title: #141414;
+  --seek-text-primary-soft: #111111;
+  --seek-text-primary-alt: #171717;
+  --seek-text-primary-deep: #202020;
+  --seek-text-muted-solid: #777777;
+  --seek-text-muted-strong: #777777;
+  --seek-text-caption: #555555;
+  --seek-text-muted: rgb(0 0 0 / 45%);
+  --seek-text-subtle: rgb(0 0 0 / 50%);
+  --seek-text-faint: rgb(0 0 0 / 40%);
+  --seek-text-dim: rgb(0 0 0 / 35%);
+  --seek-text-secondary: rgb(0 0 0 / 70%);
+  --seek-text-secondary-65: rgb(0 0 0 / 65%);
+  --seek-text-heading: rgb(0 0 0 / 82%);
+  --seek-text-control: rgb(0 0 0 / 55%);
+  --seek-text-balanced-45: rgb(0 0 0 / 45%);
+  --seek-text-balanced-40: rgb(0 0 0 / 40%);
+  --seek-text-skill-muted: #6b7280;
+  --seek-text-quiet: rgb(0 0 0 / 45%);
+  --seek-text-reading: rgb(0 0 0 / 60%);
+  --seek-text-balanced-50: rgb(0 0 0 / 50%);
+  --seek-text-balanced-60: rgb(0 0 0 / 60%);
+  --seek-text-primary-soft-alt: #111111;
+  --seek-text-head-description: rgb(0 0 0 / 60%);
+
+  /* Border */
+  --seek-border-default: #e6e6e6;
+  --seek-border-strong: #e6e6e6;
+  --seek-border-soft: #e5e5e5;
+  --seek-border-input: #e5e5e5;
+  --seek-border-control: #dddddd;
+  --seek-border-alpha-10: rgb(0 0 0 / 10%);
+  --seek-border-alpha-08: rgb(0 0 0 / 8%);
+  --seek-border-alpha-07: rgb(0 0 0 / 7%);
+  --seek-border-alpha-06: rgb(0 0 0 / 6%);
+
+  /* Accent */
+  --seek-accent-surface: #e5e7f0;
+  --seek-accent-foreground: #577bff;
+
+  /* Action */
+  --seek-action-primary: #0c5cfb;
+  --seek-action-primary-hover: #0a52df;
+  --seek-action-secondary: #eeeeee;
+  --seek-action-secondary-hover: #e5e5e5;
+  --seek-button-default-bg: #f9f9f9;
+
+  /* Status */
+  --seek-status-danger: #ef4444;
+  --seek-status-danger-soft: rgb(239 68 68 / 10%);
+  --seek-status-danger-foreground: #dc2626;
+  --seek-status-danger-border: rgb(239 68 68 / 20%);
+  --seek-status-danger-hover: #fef2f2;
+
+  /* Global baseline */
+  --seek-link-hover: #747bff;
+}
+
+.dark {
+  /* Surface */
+  --seek-surface-page: #121212;
+  --seek-surface-page-soft: #121212;
+  --seek-surface-base: #191919;
+  --seek-surface-raised: #1f1f1f;
+  --seek-surface-soft: #151515;
+  --seek-surface-control: #242424;
+  --seek-surface-control-alt: #242425;
+  --seek-surface-panel: #202020;
+  --seek-surface-deep: #181818;
+  --seek-surface-subtle: #171718;
+  --seek-surface-card: #1e1e1e;
+  --seek-surface-settings: #1D1D1D;
+  --seek-surface-input: #222222;
+  --seek-surface-hover: #2a2a2a;
+  --seek-surface-hover-strong: #2b2b2b;
+  --seek-surface-control-hover: #333333;
+  --seek-surface-button-hover: #3a3a3a;
+  --seek-surface-list-hover: #1f1f1f;
+  --seek-surface-card-hover: #292929;
+  --seek-surface-chat: #121212;
+  --seek-surface-chat-raised: #1f1f1f;
+  --seek-surface-item: #191919;
+  --seek-surface-menu: #2a2a2a;
+  --seek-surface-button-muted: #252525;
+  --seek-surface-button: #2D2D2D;
+  --seek-surface-button-soft: #202020;
+  --seek-surface-button-alt: #2D2D2D;
+  --seek-surface-inverse-soft: rgb(0 0 0 / 20%);
+  --seek-surface-overlay-soft: rgb(0 0 0 / 10%);
+  --seek-surface-pill: rgb(255 255 255 / 20%);
+  --seek-surface-neutral-strong: #2b2b2b;
+  --seek-surface-settings-hover: #191919;
+  --seek-surface-message: rgb(255 255 255 / 3.5%);
+  --seek-surface-object: rgb(29 29 30 / 50%);
+
+  /* Text */
+  --seek-text-primary: #ffffff;
+  --seek-text-strong: #ffffff;
+  --seek-text-body: #f3f4f6;
+  --seek-text-input: #ffffff;
+  --seek-text-title: #ffffff;
+  --seek-text-primary-soft: #f2f2f2;
+  --seek-text-primary-alt: #ffffff;
+  --seek-text-primary-deep: #ffffff;
+  --seek-text-muted-solid: #9a9a9a;
+  --seek-text-muted-strong: #8f8f8f;
+  --seek-text-caption: #d8d8d8;
+  --seek-text-muted: rgb(255 255 255 / 42%);
+  --seek-text-subtle: rgb(255 255 255 / 48%);
+  --seek-text-faint: rgb(255 255 255 / 35%);
+  --seek-text-dim: rgb(255 255 255 / 30%);
+  --seek-text-secondary: rgb(255 255 255 / 72%);
+  --seek-text-secondary-65: rgb(255 255 255 / 65%);
+  --seek-text-heading: rgb(255 255 255 / 88%);
+  --seek-text-control: rgb(255 255 255 / 60%);
+  --seek-text-balanced-45: rgb(255 255 255 / 45%);
+  --seek-text-balanced-40: rgb(255 255 255 / 40%);
+  --seek-text-skill-muted: rgb(255 255 255 / 50%);
+  --seek-text-quiet: rgb(255 255 255 / 40%);
+  --seek-text-reading: rgb(255 255 255 / 65%);
+  --seek-text-balanced-50: rgb(255 255 255 / 50%);
+  --seek-text-balanced-60: rgb(255 255 255 / 60%);
+  --seek-text-primary-soft-alt: #f2f2f2;
+  --seek-text-head-description: rgb(255 255 255 / 60%);
+
+  /* Border */
+  --seek-border-default: #2c2c2c;
+  --seek-border-strong: #303030;
+  --seek-border-soft: #2c2c2c;
+  --seek-border-input: #303030;
+  --seek-border-control: #3a3a3a;
+  --seek-border-alpha-10: rgb(255 255 255 / 10%);
+  --seek-border-alpha-08: rgb(255 255 255 / 8%);
+  --seek-border-alpha-07: rgb(255 255 255 / 7%);
+  --seek-border-alpha-06: rgb(255 255 255 / 6%);
+
+  /* Accent */
+  --seek-accent-surface: #2a2f4a;
+  --seek-accent-foreground: #8f9cff;
+
+  /* Action */
+  --seek-action-secondary: #242424;
+  --seek-action-secondary-hover: #2a2a2a;
+
+  /* Status */
+  --seek-status-danger-foreground: #fca5a5;
+  --seek-status-danger-border: rgb(248 113 113 / 20%);
+  --seek-status-danger-hover: rgb(248 113 113 / 10%);
+}
+
+@theme inline {
+  /* Surface */
+  --color-surface-page: var(--seek-surface-page);
+  --color-surface-page-soft: var(--seek-surface-page-soft);
+  --color-surface-base: var(--seek-surface-base);
+  --color-surface-raised: var(--seek-surface-raised);
+  --color-surface-soft: var(--seek-surface-soft);
+  --color-surface-control: var(--seek-surface-control);
+  --color-surface-control-alt: var(--seek-surface-control-alt);
+  --color-surface-panel: var(--seek-surface-panel);
+  --color-surface-deep: var(--seek-surface-deep);
+  --color-surface-subtle: var(--seek-surface-subtle);
+  --color-surface-card: var(--seek-surface-card);
+  --color-surface-settings: var(--seek-surface-settings);
+  --color-surface-input: var(--seek-surface-input);
+  --color-surface-hover: var(--seek-surface-hover);
+  --color-surface-hover-strong: var(--seek-surface-hover-strong);
+  --color-surface-control-hover: var(--seek-surface-control-hover);
+  --color-surface-button-hover: var(--seek-surface-button-hover);
+  --color-surface-list-hover: var(--seek-surface-list-hover);
+  --color-surface-card-hover: var(--seek-surface-card-hover);
+  --color-surface-chat: var(--seek-surface-chat);
+  --color-surface-chat-raised: var(--seek-surface-chat-raised);
+  --color-surface-item: var(--seek-surface-item);
+  --color-surface-menu: var(--seek-surface-menu);
+  --color-surface-button-muted: var(--seek-surface-button-muted);
+  --color-surface-button: var(--seek-surface-button);
+  --color-surface-button-soft: var(--seek-surface-button-soft);
+  --color-surface-button-alt: var(--seek-surface-button-alt);
+  --color-surface-inverse-soft: var(--seek-surface-inverse-soft);
+  --color-surface-overlay-soft: var(--seek-surface-overlay-soft);
+  --color-surface-pill: var(--seek-surface-pill);
+  --color-surface-neutral-strong: var(--seek-surface-neutral-strong);
+  --color-surface-settings-hover: var(--seek-surface-settings-hover);
+  --color-surface-message: var(--seek-surface-message);
+  --color-surface-object: var(--seek-surface-object);
+
+  /* Text */
+  --color-theme-primary: var(--seek-text-primary);
+  --color-theme-strong: var(--seek-text-strong);
+  --color-theme-body: var(--seek-text-body);
+  --color-theme-input: var(--seek-text-input);
+  --color-theme-title: var(--seek-text-title);
+  --color-theme-primary-soft: var(--seek-text-primary-soft);
+  --color-theme-primary-alt: var(--seek-text-primary-alt);
+  --color-theme-primary-deep: var(--seek-text-primary-deep);
+  --color-theme-muted-solid: var(--seek-text-muted-solid);
+  --color-theme-muted-strong: var(--seek-text-muted-strong);
+  --color-theme-caption: var(--seek-text-caption);
+  --color-theme-muted: var(--seek-text-muted);
+  --color-theme-subtle: var(--seek-text-subtle);
+  --color-theme-faint: var(--seek-text-faint);
+  --color-theme-dim: var(--seek-text-dim);
+  --color-theme-secondary: var(--seek-text-secondary);
+  --color-theme-secondary-65: var(--seek-text-secondary-65);
+  --color-theme-heading: var(--seek-text-heading);
+  --color-theme-control: var(--seek-text-control);
+  --color-theme-balanced-45: var(--seek-text-balanced-45);
+  --color-theme-balanced-40: var(--seek-text-balanced-40);
+  --color-theme-skill-muted: var(--seek-text-skill-muted);
+  --color-theme-quiet: var(--seek-text-quiet);
+  --color-theme-reading: var(--seek-text-reading);
+  --color-theme-balanced-50: var(--seek-text-balanced-50);
+  --color-theme-balanced-60: var(--seek-text-balanced-60);
+  --color-theme-primary-soft-alt: var(--seek-text-primary-soft-alt);
+  --color-theme-head-description: var(--seek-text-head-description);
+
+  /* Border */
+  --color-edge-default: var(--seek-border-default);
+  --color-edge-strong: var(--seek-border-strong);
+  --color-edge-soft: var(--seek-border-soft);
+  --color-edge-input: var(--seek-border-input);
+  --color-edge-control: var(--seek-border-control);
+  --color-edge-alpha-10: var(--seek-border-alpha-10);
+  --color-edge-alpha-08: var(--seek-border-alpha-08);
+  --color-edge-alpha-07: var(--seek-border-alpha-07);
+  --color-edge-alpha-06: var(--seek-border-alpha-06);
+
+  /* Accent */
+  --color-accent-surface: var(--seek-accent-surface);
+  --color-accent-foreground: var(--seek-accent-foreground);
+
+  /* Action */
+  --color-action-primary: var(--seek-action-primary);
+  --color-action-primary-hover: var(--seek-action-primary-hover);
+  --color-action-secondary: var(--seek-action-secondary);
+  --color-action-secondary-hover: var(--seek-action-secondary-hover);
+
+  /* Status */
+  --color-status-danger: var(--seek-status-danger);
+  --color-status-danger-soft: var(--seek-status-danger-soft);
+  --color-status-danger-foreground: var(--seek-status-danger-foreground);
+  --color-status-danger-border: var(--seek-status-danger-border);
+  --color-status-danger-hover: var(--seek-status-danger-hover);
+}

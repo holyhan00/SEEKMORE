@@ -1,0 +1,313 @@
+/* frontend/src/components/ui/AuroraBorder.css */
+
+.aurora-border {
+  --aurora-border-radius: 16px;
+  --aurora-border-width: 1px;
+  --aurora-flow-duration: 6s;
+
+  --aurora-border-gradient: conic-gradient(
+    from 0deg,
+    #020205 0deg,
+    #070811 38deg,
+    #08265f 62deg,
+    #1769ff 86deg,
+    #111a43 110deg,
+    #050509 136deg,
+    #130b27 158deg,
+    #712cff 182deg,
+    #35117e 208deg,
+    #07070d 234deg,
+    #06101f 262deg,
+    #0879d9 288deg,
+    #5140ff 314deg,
+    #170b2d 338deg,
+    #020205 360deg
+  );
+
+  --aurora-edge-filter:
+    saturate(1.15)
+    brightness(0.96);
+
+  --aurora-glow-filter:
+    blur(7px)
+    saturate(1.2)
+    brightness(1.04);
+
+  --aurora-glow-opacity: 0.2;
+
+  --aurora-perimeter-base: rgba(99, 102, 241, 0.22);
+  --aurora-perimeter-start: #38bdf8;
+  --aurora-perimeter-middle: #7c3aed;
+  --aurora-perimeter-end: #ec4899;
+
+  position: relative;
+  display: inline-grid;
+  min-width: 0;
+  border-radius: var(--aurora-border-radius);
+  isolation: isolate;
+}
+
+/* Dark mode */
+.aurora-border--dark {
+  --aurora-border-gradient: conic-gradient(
+    from 0deg,
+    #020205 0deg,
+    #070811 34deg,
+    #08265f 60deg,
+    #1769ff 84deg,
+    #111a43 110deg,
+    #050509 134deg,
+    #130b27 158deg,
+    #712cff 182deg,
+    #35117e 208deg,
+    #07070d 234deg,
+    #06101f 262deg,
+    #0879d9 288deg,
+    #5140ff 314deg,
+    #170b2d 338deg,
+    #020205 360deg
+  );
+
+  --aurora-edge-filter:
+    saturate(1.2)
+    brightness(1);
+
+  --aurora-glow-filter:
+    blur(7px)
+    saturate(1.2)
+    brightness(1.05);
+
+  --aurora-glow-opacity: 0.22;
+
+  --aurora-perimeter-base: rgba(79, 70, 229, 0.24);
+  --aurora-perimeter-start: #38bdf8;
+  --aurora-perimeter-middle: #7c3aed;
+  --aurora-perimeter-end: #d946ef;
+}
+
+/* Light mode */
+.aurora-border--light {
+  --aurora-border-gradient: conic-gradient(
+    from 0deg,
+    #ffffff 0deg,
+    #ffffff 28deg,
+    #dbeafe 56deg,
+    #93c5fd 88deg,
+    #bfdbfe 118deg,
+    #ddd6fe 150deg,
+    #c4b5fd 182deg,
+    #f5d0fe 214deg,
+    #e9d5ff 246deg,
+    #bae6fd 278deg,
+    #7dd3fc 310deg,
+    #e0f2fe 338deg,
+    #ffffff 360deg
+  );
+
+  --aurora-edge-filter:
+    saturate(1.08)
+    brightness(1.02);
+
+  --aurora-glow-filter:
+    blur(6px)
+    saturate(1.05)
+    brightness(1.04);
+
+  --aurora-glow-opacity: 0.18;
+
+  --aurora-perimeter-base: rgba(147, 197, 253, 0.38);
+  --aurora-perimeter-start: #ffffff;
+  --aurora-perimeter-middle: #7dd3fc;
+  --aurora-perimeter-end: #c4b5fd;
+}
+
+/* -------------------------------------------------------
+ * Gradient motion
+ * ----------------------------------------------------- */
+
+/*
+ * Edge and glow share the same inset, radius and border mask.
+ */
+.aurora-border__edge,
+.aurora-border__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: var(--aurora-border-width);
+
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.aurora-border__edge {
+  z-index: 2;
+  filter: var(--aurora-edge-filter);
+}
+
+.aurora-border__glow {
+  z-index: 0;
+  opacity: 0;
+  filter: var(--aurora-glow-filter);
+  transition: opacity 180ms ease;
+}
+
+.aurora-border--glow .aurora-border__glow {
+  opacity: var(--aurora-glow-opacity);
+}
+
+/*
+ * Only the oversized conic-gradient layer rotates.
+ */
+.aurora-border__flow {
+  position: absolute;
+  inset: -250%;
+  background: var(--aurora-border-gradient);
+  transform: translateZ(0) rotate(0deg);
+  transform-origin: center;
+
+  animation:
+    aurora-border-flow
+    var(--aurora-flow-duration)
+    linear
+    infinite;
+
+  will-change: transform;
+}
+
+/* -------------------------------------------------------
+ * Perimeter motion
+ * ----------------------------------------------------- */
+
+/*
+ * The SVG matches the real component dimensions.
+ * The animated dash moves along the rounded rectangle path.
+ */
+.aurora-border__perimeter {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: visible;
+  pointer-events: none;
+}
+
+/*
+ * SVG paths do not paint the inner area.
+ */
+.aurora-border__perimeter-base,
+.aurora-border__perimeter-edge,
+.aurora-border__perimeter-glow {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+/*
+ * Quiet full-path line underneath the moving light.
+ */
+.aurora-border__perimeter-base {
+  stroke: var(--aurora-perimeter-base);
+  stroke-width: var(--aurora-border-width);
+}
+
+/*
+ * Edge and glow use exactly the same path and animation.
+ * A 16-unit dash travels around a normalized 100-unit perimeter.
+ */
+.aurora-border__perimeter-edge,
+.aurora-border__perimeter-glow {
+  stroke-width: var(--aurora-border-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  stroke-dasharray: 16 84;
+  stroke-dashoffset: 0;
+
+  animation:
+    aurora-perimeter-flow
+    var(--aurora-flow-duration)
+    linear
+    infinite;
+
+  will-change: stroke-dashoffset;
+}
+
+/*
+ * Clear moving light segment.
+ */
+.aurora-border__perimeter-edge {
+  opacity: 1;
+
+  filter:
+    saturate(1.2)
+    brightness(1.08);
+}
+
+/*
+ * Soft glow generated from the exact same moving segment.
+ * It is blurred rather than moved onto a second track.
+ */
+.aurora-border__perimeter-glow {
+  stroke-width: calc(var(--aurora-border-width) * 2.5);
+  opacity: var(--aurora-glow-opacity);
+  filter: var(--aurora-glow-filter);
+}
+
+/* -------------------------------------------------------
+ * Content
+ * ----------------------------------------------------- */
+
+.aurora-border__content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  border-radius: inherit;
+  background: transparent;
+}
+
+/* -------------------------------------------------------
+ * Animations
+ * ----------------------------------------------------- */
+
+@keyframes aurora-border-flow {
+  from {
+    transform: translateZ(0) rotate(0deg);
+  }
+
+  to {
+    transform: translateZ(0) rotate(360deg);
+  }
+}
+
+@keyframes aurora-perimeter-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-border__flow {
+    animation: none;
+    transform: translateZ(0) rotate(0deg);
+  }
+
+  .aurora-border__perimeter-edge,
+  .aurora-border__perimeter-glow {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

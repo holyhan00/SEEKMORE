@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_2" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 45 45">
+<defs>
+    <style>
+      .st0 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <path class="st0" d="M22.5,41c-1.1,0-2-.9-2-2v-14.5H6c-1.1,0-2-.9-2-2s.9-2,2-2h14.5V6c0-1.1.9-2,2-2s2,.9,2,2v14.5h14.5c1.1,0,2,.9,2,2s-.9,2-2,2h-14.5v14.5c0,1.1-.9,2-2,2Z"/>
+</svg>

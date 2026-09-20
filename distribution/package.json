@@ -1,0 +1,28 @@
+{
+  "name": "@seekmore/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SEEKMORE Electron Desktop Host",
+  "main": "dist/main/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "tsc -p tsconfig.json && electron dist/main/index.js --dev",
+    "build": "tsc -p tsconfig.json",
+    "start": "electron dist/main/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:path-contract": "pnpm build && node --test test/runtime-paths.spec.cjs",
+    "test:release:desktop": "pnpm build && node --test test/runtime-paths.spec.cjs test/data-home.spec.cjs test/runtime-secret-store.spec.cjs test/backend-process.spec.cjs test/desktop-path-resolver.spec.cjs test/data-runtime.spec.cjs test/mcp-runtime-resolver.spec.cjs test/windows-lifecycle.spec.cjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "electron": "43.4.0",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": "24.19.0",
+    "pnpm": "10.6.5"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.0.0"
+  }
+}

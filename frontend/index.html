@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="SEEKMORE 智能协作平台" />
+    <title>SEEKMORE</title>
+    <script>
+      (() => {
+        const params = new URLSearchParams(window.location.search);
+        const hostIsDesktop =
+          params.get('seekmoreRuntime') === 'desktop' ||
+          Boolean(window.seekmoreDesktop);
+        const bridge = window.seekmoreDesktop ? 'ready' : hostIsDesktop ? 'missing' : 'none';
+        const snapshot = { host: hostIsDesktop ? 'desktop' : 'web', bridge };
+        window.__SEEKMORE_DESKTOP_BOOTSTRAP__ = snapshot;
+        document.documentElement.dataset.runtime = snapshot.host;
+        document.documentElement.dataset.desktopBridge = snapshot.bridge;
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

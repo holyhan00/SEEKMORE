@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_2" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 48.2 45">
+<defs>
+    <style>
+      .st0 {
+        fill: #666;
+      }
+    </style>
+  </defs>
+  <path class="st0" d="M24.1,0h0C11.7,0,1.6,10.1,1.6,22.5v22.5h22.5c12.4,0,22.5-10.1,22.5-22.5S36.5,0,24.1,0ZM24.1,41H5.6v-18.5C5.6,12.3,13.9,4,24.1,4s18.5,8.3,18.5,18.5-8.3,18.5-18.5,18.5Z"/>
+  <g>
+    <circle class="st0" cx="13.8" cy="22.5" r="4"/>
+    <circle class="st0" cx="24.1" cy="22.5" r="4"/>
+    <circle class="st0" cx="34.4" cy="22.5" r="4"/>
+  </g>
+</svg>

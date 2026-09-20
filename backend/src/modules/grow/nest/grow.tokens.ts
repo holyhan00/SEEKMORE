@@ -1,0 +1,14 @@
+export const GROW_CLOCK = Symbol('GROW_CLOCK');
+export const GROW_LOGGER = Symbol('GROW_LOGGER');
+export const GROW_REVIEW_REPOSITORY = Symbol('GROW_REVIEW_REPOSITORY');
+export const GROW_OBSERVER_STATE = Symbol('GROW_OBSERVER_STATE');
+export const GROW_EVIDENCE = Symbol('GROW_EVIDENCE');
+export const GROW_SKILL_CATALOG = Symbol('GROW_SKILL_CATALOG');
+export const GROW_FOCUS_AGENT = Symbol('GROW_FOCUS_AGENT');
+export const GROW_PROFESSIONAL_STUDY = Symbol('GROW_PROFESSIONAL_STUDY');
+export const GROW_MEMORY = Symbol('GROW_MEMORY');
+export const GROW_SKILL_AUTHORING = Symbol('GROW_SKILL_AUTHORING');
+export const GROW_SKILL_VALIDATION = Symbol('GROW_SKILL_VALIDATION');
+export const GROW_SKILL_PUBLICATION = Symbol('GROW_SKILL_PUBLICATION');
+export const GROW_POLICY = Symbol('GROW_POLICY');
+export const GROW_EFFECT_STATE = Symbol('GROW_EFFECT_STATE');

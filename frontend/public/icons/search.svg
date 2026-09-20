@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_2" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 45 45">
+<defs>
+    <style>
+      .st0 {
+        fill: #898989;
+      }
+    </style>
+  </defs>
+  <path class="st0" d="M5.2,5.2c-6.9,6.9-6.9,18.2,0,25.1,6.9,6.9,18.2,6.9,25.1,0,6.9-6.9,6.9-18.2,0-25.1-6.9-6.9-18.2-6.9-25.1,0ZM26.6,26.6c-4.9,4.9-12.9,4.9-17.8,0s-4.9-12.9,0-17.8c4.9-4.9,12.9-4.9,17.8,0s4.9,12.9,0,17.8Z"/>
+  <rect class="st0" x="24.1" y="32.2" width="23" height="6.9" rx="2.8" ry="2.8" transform="translate(35.6 -14.8) rotate(45)"/>
+</svg>

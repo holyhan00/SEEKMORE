@@ -1,0 +1,46 @@
+# macOS / Windows filesystem metadata
+.DS_Store
+**/.DS_Store
+__MACOSX/
+._*
+Thumbs.db
+Desktop.ini
+
+# Dependencies and build outputs
+node_modules/
+**/node_modules/
+**/dist/
+**/coverage/
+*.tsbuildinfo
+
+# SEEKMORE generated runtime/release state
+backend/storage/
+backend/uploads/
+distribution/vendor/
+distribution/stage/
+distribution/release/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+.cache/
+.tmp/
+tmp/
+temp/
+
+# Private local overrides / credentials
+# backend/.env and frontend/.env are intentionally public local-development defaults.
+.env.local
+.env.*.local
+**/.env.local
+**/.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+
+# IDE-local state
+.idea/
+.vscode/*.local.json

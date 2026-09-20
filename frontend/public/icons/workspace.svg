@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_1" data-name="图层_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 40 40">
+<defs>
+    <style>
+      .st0 {
+        fill: #afafaf;
+      }
+    </style>
+  </defs>
+  <g>
+    <path class="st0" d="M36.8,6.3H3.2c-1,0-1.7.8-1.7,1.7v19.5c0,1,.8,1.7,1.7,1.7h33.5c1,0,1.7-.8,1.7-1.7V8.1c0-1-.8-1.7-1.7-1.7ZM36.5,26.7c0,.3-.3.6-.6.6H4.1c-.3,0-.6-.3-.6-.6V8.9c0-.3.3-.6.6-.6h31.8c.3,0,.6.3.6.6v17.8Z"/>
+    <rect class="st0" x="1.5" y="31.2" width="37" height="2" rx="1" ry="1"/>
+    <rect class="st0" x="5.1" y="13.8" width="22" height="2" rx="1" ry="1"/>
+  </g>
+  <rect class="st0" x="5.1" y="17.8" width="18" height="2" rx="1" ry="1"/>
+</svg>

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "generatedForRelease": "1.0.0",
+  "product": "SEEKMORE",
+  "productName": "SEEKMORE",
+  "appId": "ai.seekmore.desktop",
+  "electron": "43.4.0",
+  "electronBuilder": "26.15.6",
+  "macOS": {
+    "minimumSystemVersion": "13.5",
+    "targets": {
+      "darwin-arm64": {
+        "arch": "arm64",
+        "enabled": true,
+        "installer": "dmg",
+        "signed": "adhoc"
+      },
+      "darwin-x64": {
+        "arch": "x64",
+        "enabled": false,
+        "installer": "dmg",
+        "signed": "adhoc"
+      }
+    }
+  },
+  "windows": {
+    "minimumSystemVersion": "10.0.22000",
+    "targets": {
+      "win32-x64": {
+        "arch": "x64",
+        "enabled": true,
+        "installer": "nsis",
+        "signed": false,
+        "artifactName": "SEEKMORE-1.0.0-win-x64.exe"
+      }
+    }
+  }
+}
